@@ -3,6 +3,7 @@ package question
 import (
 	"fmt"
 	"math"
+	"sync"
 	"testing"
 )
 
@@ -858,3 +859,247 @@ func TestIsMatch(t *testing.T) {
 }
 
 // @lc code=end
+/*
+ * @lc app=leetcode.cn id=34 lang=golang
+ *
+ * [34] 在排序数组中查找元素的第一个和最后一个位置
+ */
+
+//@lc code=start
+//答案好简单，差距不是一点半点啊
+//思路是获取第一个等于 target 以及第一个大于 target 的 index -1 。
+//关于 二分法的条件判断，只要处理好
+/*
+n	n+1
+target target
+target  大
+小      target
+三种情况，而不至于死循环即可
+*/
+
+func searchRange(nums []int, target int) []int {
+	numsLen := len(nums)
+	if numsLen < 1 {
+		return []int{-1, -1}
+	}
+
+	start := 0
+	end := numsLen - 1
+	for start < end {
+		mid := (start + end) >> 1
+		if nums[mid] >= target {
+			end = mid
+		} else {
+			start = mid + 1
+		}
+	}
+
+	forward := start
+	end = numsLen - 1
+	for start < end {
+		mid := (start + end + 1) >> 1
+		if nums[mid] <= target {
+			start = mid
+		} else {
+			end = mid - 1
+		}
+	}
+	if nums[start] != target {
+		return []int{-1, -1}
+	}
+
+	return []int{forward, start}
+}
+
+//func searchRange(nums []int, target int) []int {
+//	leftmost := sort.SearchInts(nums, target)
+//	if leftmost == len(nums) || nums[leftmost] != target {
+//		return []int{-1, -1}
+//	}
+//	rightmost := MySearchInts(nums, target+1) - 1
+//	return []int{leftmost, rightmost}
+//}
+//
+//func MySearchInts(nums []int, target int) int {
+//	numsLen := len(nums)
+//	start := 0
+//	end := numsLen //如果这里用 numsLen - 1 就会有导致判断失败。
+//
+//	for start < end {
+//		mid := (start + end) >> 1
+//		if nums[mid] >= target {
+//			end = mid
+//		} else {
+//			start = mid + 1
+//		}
+//	}
+//	return start
+//}
+
+func TestSearchRange(t *testing.T) {
+	//nums := []int{1, 4, 4, 4, 4, 5}
+	//nums := []int{5, 7, 7, 8, 8, 10}
+
+	nums := []int{2, 2}
+	target := 2
+	rs := searchRange(nums, target)
+	fmt.Printf("searchRange:%v", rs)
+}
+
+// @lc code=end
+
+/*
+ * @lc app=leetcode.cn id=36 lang=golang
+ *
+ * [36] 有效的数独
+ */
+
+// @lc code=start
+func isValidSudoku(board [][]byte) bool {
+	hori := isValidSudokuInner(board, transIJHori) &&
+		isValidSudokuInner(board, transIJVeri) &&
+		isValidSudokuInner(board, transIJBlock)
+
+	return hori
+}
+func isValidSudokuInner(board [][]byte, tranIJFunc func(int, int) (int, int)) bool {
+	isValid := true
+	for i := 0; i < 9; i++ {
+		flagMap := make(map[byte]struct{}, 9)
+		for j := 0; j < 9; j++ {
+			k, z := tranIJFunc(i, j)
+			char := board[k][z]
+			if char == '.' {
+				continue
+			}
+			if _, exist := flagMap[char]; exist {
+				isValid = false
+				break
+			}
+			flagMap[char] = struct{}{}
+		}
+		if isValid == false {
+			break
+		}
+	}
+	return isValid
+}
+
+func transIJHori(i, j int) (int, int) {
+	return i, j
+}
+
+func transIJVeri(i, j int) (int, int) {
+	return j, i
+}
+
+func transIJBlock(i, j int) (int, int) {
+	tmpJ := j%3 + i/3*3
+	i = i%3*3 + j/3
+	return i, tmpJ
+}
+
+func TestIsValidSudoku(t *testing.T) {
+	//testSudoku := [][]byte{
+	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
+	//	{'6', '.', '.', '1', '9', '5', '.', '.', '.'},
+	//	{'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+	//	{'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+	//	{'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+	//	{'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+	//	{'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+	//	{'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+	//	{'.', '.', '.', '.', '8', '.', '.', '7', '9'},
+	//}
+	testSudoku := [][]byte{
+		{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
+		{'6', '8', '.', '1', '9', '5', '.', '.', '.'},
+		{'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+		{'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+		{'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+		{'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+		{'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+		{'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+		{'.', '.', '.', '.', '8', '.', '.', '7', '9'},
+	}
+	rs := isValidSudoku(testSudoku)
+	fmt.Printf("judgeRs:%v\n", rs)
+	//for i := 0; i < 9; i++ {
+	//	for j := 0; j < 9; j++ {
+	//		tmpI, tmpJ := transIJBlock(i, j)
+	//		fmt.Printf("i:%v,j:%v,tmpI:%v,tmpJ:%v\n", i, j, tmpI, tmpJ)
+	//	}
+	//}
+}
+
+// @lc code=end
+
+type BloomFilter struct {
+	bitMap       []byte
+	hashFuncList []func(value string) int
+	rwLock       *sync.RWMutex
+	len          int
+}
+
+func (flt *BloomFilter) Init(mapLen int, funcList ...func(value string) int) {
+	flt.bitMap = make([]byte, mapLen/8+1)
+	flt.hashFuncList = funcList
+	flt.rwLock = &sync.RWMutex{}
+	flt.len = mapLen
+}
+
+// Contains
+// 纠结了一下 defer 写在 lock 前还是后
+func (flt *BloomFilter) CheckExist(value string) bool {
+	for _, hashFunc := range flt.hashFuncList {
+		hashValue := hashFunc(value)
+
+		isExist := true
+		func() {
+			flt.rwLock.RLock()
+			defer flt.rwLock.RUnlock()
+			hashValue %= flt.len                                      //有遗漏
+			exist := flt.bitMap[hashValue/8] & (1 << (hashValue % 8)) //定义单独变量要考虑空间占用
+			if exist == 0 {
+				isExist = false
+			}
+		}()
+		if !isExist {
+			return false
+		}
+	}
+	return true
+}
+
+// Add
+func (flt *BloomFilter) SetBloomValue(value string) {
+	for _, hashFunc := range flt.hashFuncList {
+		hashValue := hashFunc(value)
+		hashValue %= flt.len
+		func() {
+			flt.rwLock.Lock()
+			defer flt.rwLock.Unlock()
+			flt.bitMap[hashValue/8] |= 1 << hashValue % 8
+		}()
+	}
+}
+
+func TestBloomFilter(t *testing.T) {
+	filter := &BloomFilter{}
+	filter.Init(10, func(value string) int { return len(value) })
+	str := ""
+	wg := sync.WaitGroup{}
+	for i := 0; i < 11; i++ {
+		str += "1"
+		wg.Add(1) //这个不能放在 go 里面，因为不能保证他执行到了
+		go func(str string) {
+			defer wg.Done()
+			isExist := filter.CheckExist(str)
+			fmt.Printf("value:%s, rs:%v\n", str, isExist)
+			if !isExist {
+				filter.SetBloomValue(str)
+			}
+		}(str)
+	}
+	wg.Wait()
+}

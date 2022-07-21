@@ -19,20 +19,17 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/go-cmp v0.5.7
-	github.com/google/gops v0.3.22 // indirect
+	github.com/google/gops v0.3.22
 	github.com/google/wire v0.5.0
 	github.com/googollee/go-socket.io v1.6.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.11
-	github.com/lufia/plan9stats v0.0.0-20220326011226-f1430873d8db // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/olivere/elastic v6.2.35+incompatible // indirect
-	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/robfig/cron v1.2.0
 	github.com/satori/go.uuid v1.2.0
-	github.com/shirou/gopsutil/v3 v3.22.3 // indirect
 	github.com/shopspring/decimal v1.2.0
 	github.com/siddontang/go v0.0.0-20180604090527-bdc77568d726
 	github.com/siddontang/go-log v0.0.0-20190221022429-1e957dd83bed
