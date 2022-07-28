@@ -1,6 +1,7 @@
 package question
 
 import (
+	"container/heap"
 	"fmt"
 	"math"
 	"sync"
@@ -955,6 +956,7 @@ func TestSearchRange(t *testing.T) {
  */
 
 // @lc code=start
+//还是想复杂了。可以通过一次遍历实现。九宫格的按照 i/3 j/3 来统计就可以了。
 func isValidSudoku(board [][]byte) bool {
 	hori := isValidSudokuInner(board, transIJHori) &&
 		isValidSudokuInner(board, transIJVeri) &&
@@ -1102,4 +1104,153 @@ func TestBloomFilter(t *testing.T) {
 		}(str)
 	}
 	wg.Wait()
+}
+
+/**
+ * Definition for singly-linked list.
+ * type ListNode struct {
+ *     Val int
+ *     Next *ListNode
+ * }
+ */
+// 哨兵节点
+func mergeTwoLists(list1 *ListNode, list2 *ListNode) *ListNode {
+	head := &ListNode{}
+	index := head
+	for list1 != nil && list2 != nil {
+		if list1.Val < list2.Val {
+			index.Next = list1
+			list1 = list1.Next
+		} else {
+			index.Next = list2
+			list2 = list2.Next
+		}
+		index = index.Next
+	}
+	index.Next = list1
+	if list2 != nil {
+		index.Next = list2
+	}
+	return head.Next
+}
+
+/**
+ * Definition for singly-linked list.
+ * type ListNode struct {
+ *     Val int
+ *     Next *ListNode
+ * }
+ */
+//耗时确实比较严重，而且逻辑也比较复杂
+func mergeKLists(lists []*ListNode) *ListNode {
+	head := &ListNode{}
+	prev := head
+
+	index := 0
+	list := &ListNode{}
+	for len(lists) > 0 {
+		nextIndex := 0
+		for index, list = range lists {
+			if list == nil {
+				break
+			}
+			if lists[nextIndex].Val > list.Val {
+				nextIndex = index
+			}
+		}
+		if list == nil {
+			copy(lists[index:], lists[index+1:]) //这里的 copy 耗时
+		}
+		prev.Next = lists[nextIndex]
+		lists[nextIndex] = lists[nextIndex].Next
+		prev = prev.Next
+	}
+	return head.Next
+}
+
+//代码简单
+func mergeKLists2(lists []*ListNode) *ListNode {
+	var ans *ListNode
+	for _, list := range lists {
+		ans = mergeTwoLists(ans, list)
+	}
+	return ans
+}
+
+//归并， logk 的提升
+func mergeKLists3(lists []*ListNode) *ListNode {
+	return mergeKListsRecur(lists, 0, len(lists)-1)
+}
+
+//采用递归的方式，两两合并
+func mergeKListsRecur(lists []*ListNode, l, r int) *ListNode {
+	//这里的两个条件关注一下
+	if l == r {
+		return lists[l]
+	}
+	if l > r {
+		return nil
+	}
+	mid := (l + r) / 2
+	return mergeTwoLists(mergeKListsRecur(lists, l, mid), mergeKListsRecur(lists, mid+1, r))
+}
+
+type ListNodeMinQueue []*ListNode
+
+func (l *ListNodeMinQueue) Less(i, j int) bool { return (*l)[i].Val < (*l)[j].Val }
+func (l *ListNodeMinQueue) Len() int           { return len(*l) }
+func (l *ListNodeMinQueue) Swap(i, j int)      { (*l)[i], (*l)[j] = (*l)[j], (*l)[i] }
+func (l *ListNodeMinQueue) Push(i interface{}) { *l = append(*l, i.(*ListNode)) }
+func (l *ListNodeMinQueue) Pop() interface{} {
+	len := l.Len()
+	tmp := (*l)[len-1]
+	*l = (*l)[:len-1]
+	return tmp
+}
+
+//采用优先级队列的方式
+func mergeLists4(lists []*ListNode) *ListNode {
+	minHeap := &ListNodeMinQueue{}
+	for _, list := range lists {
+		if list == nil {
+			continue
+		}
+		heap.Push(minHeap, list)
+	}
+	//fmt.Printf("len:%d\n", minHeap.Len())
+	head := &ListNode{}
+	prev := head
+	for minHeap.Len() > 0 {
+		prev.Next = heap.Pop(minHeap).(*ListNode)
+		if prev.Next.Next != nil {
+			heap.Push(minHeap, prev.Next.Next)
+		}
+		prev = prev.Next
+	}
+	return head.Next
+}
+
+func TestMergeLists(t *testing.T) {
+	lists := make([]*ListNode, 0, 3)
+	for i := 0; i < 3; i++ {
+		listHead := &ListNode{}
+		list := listHead
+		for j := 0; j < 5; j++ {
+			tmp := &ListNode{
+				Val: j + int(math.Pow(10, float64(i))),
+			}
+			list.Next = tmp
+			list = list.Next
+		}
+		lists = append(lists, listHead.Next)
+	}
+
+	rs := mergeLists4(lists)
+
+	index := rs
+	for index != nil {
+		fmt.Printf("var:%v\n", index.Val)
+		index = index.Next
+	}
+
 }
