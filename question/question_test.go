@@ -1254,3 +1254,35 @@ func TestMergeLists(t *testing.T) {
 	}
 
 }
+
+var cmbList [][]int
+var tmpList []int
+
+func combinationSum(candidates []int, target int) [][]int {
+	cmbList = make([][]int, 0)
+	tmpList = make([]int, 0)
+	combinationSumRecur(candidates, 0, target)
+	return cmbList
+}
+
+func combinationSumRecur(candidates []int, index int, target int) {
+	//fmt.Printf("index:%v, target:%v\n", index, target)
+	if target == 0 {
+		list := append([]int(nil), tmpList...)
+		cmbList = append(cmbList, list)
+		return
+	} else if target < 0 || index >= len(candidates) {
+		return
+	}
+
+	combinationSumRecur(candidates, index+1, target)
+
+	tmpList = append(tmpList, candidates[index])
+	combinationSumRecur(candidates, index, target-candidates[index])
+	tmpList = tmpList[:len(tmpList)-1]
+}
+
+func TestCombinationSum(t *testing.T) {
+	rs := combinationSum([]int{2, 3, 6, 7}, 8)
+	fmt.Printf("rs:%v\n", rs)
+}
