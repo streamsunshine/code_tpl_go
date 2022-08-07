@@ -1286,3 +1286,29 @@ func TestCombinationSum(t *testing.T) {
 	rs := combinationSum([]int{2, 3, 6, 7}, 8)
 	fmt.Printf("rs:%v\n", rs)
 }
+
+func findInt(nums []int, target int) int {
+	start := 0
+	end := len(nums) - 1
+
+	for start < end {
+		mid := (start + end + 1) / 2
+		if nums[mid] == target {
+			start = mid
+		} else if nums[mid] > target {
+			end = mid - 1
+		} else {
+			start = mid + 1
+		}
+	}
+	if nums[start] == target {
+		return start
+	}
+	return -1
+}
+
+func TestFindInt(t *testing.T) {
+	testArr := []int{-1, 2, 6, 6, 6, 7, 7}
+	rs := findInt(testArr, 6)
+	fmt.Printf("rs:%v\n", rs)
+}
