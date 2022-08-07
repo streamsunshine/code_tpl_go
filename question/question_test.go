@@ -1312,3 +1312,38 @@ func TestFindInt(t *testing.T) {
 	rs := findInt(testArr, 6)
 	fmt.Printf("rs:%v\n", rs)
 }
+/*
+ * @lc app=leetcode.cn id=46 lang=golang
+ *
+ * [46] 全排列
+ */
+
+// @lc code=start
+func permute(nums []int) [][]int {
+	ans := make([][]int, 0)
+	for index, num := range nums {
+		if index == 0 {
+			ans = append(ans, []int{num})
+			continue
+		}
+		ansLen := len(ans)
+		for j := 0; j < ansLen; j++ {
+			list := ans[0]
+			listLen := len(list)
+			for i := 0; i < listLen+1; i++ {
+				newList := append([]int{num}, list...)
+				newList[i], newList[0] = newList[0], newList[i]
+				ans = append(ans, newList)
+			}
+			ans = ans[1:]
+		}
+	}
+	return ans
+}
+
+func TestPermute(t *testing.T) {
+	rs := permute([]int{1, 2, 3})
+	fmt.Printf("rs:%v\n", rs)
+}
+
+// @lc code=end
