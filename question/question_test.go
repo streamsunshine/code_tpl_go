@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"fmt"
 	"math"
+	"sort"
 	"sync"
 	"testing"
 )
@@ -1312,6 +1313,7 @@ func TestFindInt(t *testing.T) {
 	rs := findInt(testArr, 6)
 	fmt.Printf("rs:%v\n", rs)
 }
+
 /*
  * @lc app=leetcode.cn id=46 lang=golang
  *
@@ -1347,3 +1349,90 @@ func TestPermute(t *testing.T) {
 }
 
 // @lc code=end
+
+type Average struct {
+	Sum  int //平均值
+	Cnt  int //计数
+	Lock *sync.RWMutex
+}
+
+func GetObject() *Average {
+	return &Average{
+		Lock: &sync.RWMutex{},
+	}
+}
+
+func (a *Average) AddValue(value int) {
+	a.Lock.Lock()
+	defer a.Lock.Unlock()
+	a.Sum += value
+	a.Cnt += 1
+}
+
+func (a *Average) GetValue() int {
+	a.Lock.RLock()
+	defer a.Lock.RUnlock()
+	return a.Sum / a.Cnt
+}
+
+type StaticsDataInterface interface {
+	InputValue(value int)
+	GetResult() int
+}
+
+type StaticsData struct {
+	objMap map[string]StaticsDataInterface
+}
+
+func (s *StaticsData) RegisterStaticsObj(objName string, obj StaticsDataInterface) {
+	s.objMap[objName] = obj
+}
+
+func (s *StaticsData) InputValue(value int) {
+	for _, obj := range s.objMap {
+		obj.InputValue(value)
+	}
+}
+
+func (s *StaticsData) GetResult(objName string) {
+
+}
+
+func Triple(nums []int) [][]int {
+	sort.Ints(nums)
+	numsLen := len(nums)
+	rs := [][]int{}
+	for index, num := range nums {
+		start := index + 1
+		end := numsLen - 1
+
+		if index > 0 && num == nums[index-1] {
+			continue
+		}
+
+		cmpValue := 0 - num
+		for start < end {
+			if nums[start] == nums[start-1] {
+				start++
+				continue
+			}
+			curValue := nums[start] + nums[end]
+			if curValue == cmpValue {
+				rs = append(rs, []int{nums[index], nums[start], nums[end]})
+				start++
+				end--
+			} else if curValue > cmpValue {
+				end--
+			} else {
+				start++
+			}
+		}
+	}
+	return rs
+}
+
+func TestTriple(t *testing.T) {
+	nums := []int{-2, 0, 0, 2, 2}
+	rs := Triple(nums)
+	fmt.Printf("rs:%v\n", rs)
+}
