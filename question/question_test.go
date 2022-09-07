@@ -3,56 +3,148 @@ package question
 import (
 	"container/heap"
 	"fmt"
+	"golang.org/x/tools/container/intsets"
 	"math"
 	"sort"
 	"sync"
 	"testing"
 )
 
-//// 155. 最小栈  s
-//type MinStack struct {
-//	stack    []int
-//	minStack []int
-//}
-//
-//func Constructor() MinStack {
-//	return MinStack{
-//		stack:    []int{},
-//		minStack: []int{intsets.MaxInt},
-//	}
-//}
-//
-//func (this *MinStack) Push(val int) {
-//	this.stack = append(this.stack, val)
-//	//if this.minStack[len(this.minStack)-1] < val {
-//	//	this.minStack = append(this.minStack, this.minStack[len(this.minStack)-1])
-//	//} else {
-//	//	this.minStack = append(this.minStack, val)
-//	//}
-//	this.minStack = append(this.minStack, min(this.minStack[len(this.minStack)-1], val))
-//}
-//
-//func min(x, y int) int {
-//	if x < y {
-//		return x
-//	}
-//	return y
-//}
-//func (this *MinStack) Pop() {
-//	if len(this.stack) <= 0 {
-//		return
-//	}
-//	this.stack = this.stack[:len(this.stack)-1]
-//	this.minStack = this.minStack[:len(this.minStack)-1]
-//}
-//
-//func (this *MinStack) Top() int {
-//	return this.stack[len(this.stack)-1]
-//}
-//
-//func (this *MinStack) GetMin() int {
-//	return this.minStack[len(this.minStack)-1]
-//}
+/*
+ * @lc app=leetcode.cn id=2 lang=golang
+ *
+ * [2] 两数相加
+ *
+ * 当两个条件满足一个就退出的条件如何写；如何避免处理链表头指针为空。
+ */
+
+// @lc code=start
+/**
+ * Definition for singly-linked list.
+ * type ListNode struct {
+ *     Val int
+ *     Next *ListNode
+ * }
+ */
+func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
+	carry := 0
+	head := &ListNode{}
+	node := head //tail  更合适
+	for l1 != nil || l2 != nil {
+		if l1 != nil {
+			carry += l1.Val
+			l1 = l1.Next
+		}
+		if l2 != nil {
+			carry += l2.Val
+			l2 = l2.Next
+		}
+
+		node.Next = &ListNode{
+			Val: carry % 10,
+		}
+		carry = carry / 10
+		node = node.Next
+	}
+	if carry != 0 {
+		node.Next = &ListNode{
+			Val: carry,
+		}
+	}
+	return head.Next
+}
+
+// @lc code=end
+
+/*
+ * @lc app=leetcode.cn id=3 lang=golang
+ *
+ * [3] 无重复字符的最长子串
+ *
+ * 我这里的方案的区别，利用了 map 记录位置，实现了左侧可以跳跃，不必一个一个挪动
+ *
+ * 学到了如何去遍历连续字串，并基于此对问题进行分析
+ */
+// 连续的字串，遍历子串可以把头或者尾依次固定，然后想优化方案。
+// 这里先固定头部，移动尾部，直到遇到重复字串。此时考虑是否可以直接将头移动？假设有更好的，那么一定会有重复
+// 因此可以移动头。而重复性判断采用  map 来做
+
+// 官方的答案依次将 head 向后移动一下，然后每次继续移动右侧，直到遇到重复（开始移动左）
+// @lc code=start
+func lengthOfLongestSubstring(s string) int {
+	start := 0
+	maxLen := 0
+	posMap := make(map[byte]int, 0)
+	for index, v := range []byte(s) {
+		if pos, exist := posMap[v]; exist {
+			if pos+1 > start {
+				start = pos + 1
+			}
+			posMap[v] = index
+		} else {
+			posMap[v] = index
+		}
+		//fmt.Printf("in:%v, pos:%v, v:%v\n", index, start, v)
+		curLen := index - start + 1
+		if curLen > maxLen {
+			maxLen = curLen
+		}
+	}
+	return maxLen
+}
+
+func TestLengthOfLongestSubstrin(t *testing.T) {
+	rs := lengthOfLongestSubstring("abba")
+	//rs := lengthOfLongestSubstring("abcabcbb")
+	fmt.Printf("rs:%v\n", rs)
+}
+
+// @lc code=end
+
+// 155. 最小栈  s
+type MinStack struct {
+	stack    []int
+	minStack []int
+}
+
+func Constructor() MinStack {
+	return MinStack{
+		stack:    []int{},
+		minStack: []int{intsets.MaxInt},
+	}
+}
+
+func (this *MinStack) Push(val int) {
+	this.stack = append(this.stack, val)
+	//if this.minStack[len(this.minStack)-1] < val {
+	//	this.minStack = append(this.minStack, this.minStack[len(this.minStack)-1])
+	//} else {
+	//	this.minStack = append(this.minStack, val)
+	//}
+	this.minStack = append(this.minStack, min(this.minStack[len(this.minStack)-1], val))
+}
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+func (this *MinStack) Pop() {
+	if len(this.stack) <= 0 {
+		return
+	}
+	this.stack = this.stack[:len(this.stack)-1]
+	this.minStack = this.minStack[:len(this.minStack)-1]
+}
+
+func (this *MinStack) Top() int {
+	return this.stack[len(this.stack)-1]
+}
+
+func (this *MinStack) GetMin() int {
+	return this.minStack[len(this.minStack)-1]
+}
 
 /**
  * Your MinStack object will be instantiated and called as such:
@@ -63,36 +155,36 @@ import (
  * param_4 := obj.GetMin();
  */
 
-////20. 有效的括号 s
-//func isValid(s string) bool {
-//	//这里用反向的，每次看前一个是不是当前的左括号。如果不是直接返回就行。
-//	pairMap := map[byte]byte{
-//		'{': '}',
-//		'[': ']',
-//		'(': ')',
-//	}
-//	byteStack := make([]byte, 0, len(s))
-//	for _, char := range s {
-//
-//		if len(byteStack) == 0 {
-//			byteStack = append(byteStack, byte(char))
-//			continue
-//		} else if v, exist := pairMap[byteStack[len(byteStack)-1]]; exist && v == byte(char) {
-//			byteStack = byteStack[:len(byteStack)-1]
-//		} else {
-//			byteStack = append(byteStack, byte(char))
-//		}
-//	}
-//	if len(byteStack) != 0 {
-//		return false
-//	}
-//	return true
-//}
-//
-//func TestValue(t *testing.T) {
-//	rs := isValid("([])")
-//	fmt.Printf("rs:%v", rs)
-//}
+//20. 有效的括号 s
+func isValid(s string) bool {
+	//这里用反向的，每次看前一个是不是当前的左括号。如果不是直接返回就行。
+	pairMap := map[byte]byte{
+		'{': '}',
+		'[': ']',
+		'(': ')',
+	}
+	byteStack := make([]byte, 0, len(s))
+	for _, char := range s {
+
+		if len(byteStack) == 0 {
+			byteStack = append(byteStack, byte(char))
+			continue
+		} else if v, exist := pairMap[byteStack[len(byteStack)-1]]; exist && v == byte(char) {
+			byteStack = byteStack[:len(byteStack)-1]
+		} else {
+			byteStack = append(byteStack, byte(char))
+		}
+	}
+	if len(byteStack) != 0 {
+		return false
+	}
+	return true
+}
+
+func TestIsValid(t *testing.T) {
+	rs := isValid("([])")
+	fmt.Printf("rs:%v", rs)
+}
 
 //739. 每日温度  m
 //除了变量命名，实现上和答案差异不大
@@ -1209,6 +1301,23 @@ func (l *ListNodeMinQueue) Pop() interface{} {
 	return tmp
 }
 
+//作者：LeetCode-Solution
+//链接：https://leetcode.cn/problems/hua-dong-chuang-kou-de-zui-da-zhi-lcof/solution/hua-dong-chuang-kou-de-zui-da-zhi-by-lee-ymyo/
+//来源：力扣（LeetCode）
+//著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+var a []int
+
+type hp struct{ sort.IntSlice }
+
+func (h hp) Less(i, j int) bool  { return a[h.IntSlice[i]] > a[h.IntSlice[j]] }
+func (h *hp) Push(v interface{}) { h.IntSlice = append(h.IntSlice, v.(int)) }
+func (h *hp) Pop() interface{} {
+	a := h.IntSlice
+	v := a[len(a)-1]
+	h.IntSlice = a[:len(a)-1]
+	return v
+}
+
 //采用优先级队列的方式
 func mergeLists4(lists []*ListNode) *ListNode {
 	minHeap := &ListNodeMinQueue{}
@@ -1218,6 +1327,7 @@ func mergeLists4(lists []*ListNode) *ListNode {
 		}
 		heap.Push(minHeap, list)
 	}
+
 	//fmt.Printf("len:%d\n", minHeap.Len())
 	head := &ListNode{}
 	prev := head
@@ -1324,10 +1434,12 @@ func TestFindInt(t *testing.T) {
 func permute(nums []int) [][]int {
 	ans := make([][]int, 0)
 	for index, num := range nums {
+		//第一个特殊处理
 		if index == 0 {
 			ans = append(ans, []int{num})
 			continue
 		}
+		//通过对少一个元素的进行插入，获取当前的全排列
 		ansLen := len(ans)
 		for j := 0; j < ansLen; j++ {
 			list := ans[0]
@@ -1337,6 +1449,7 @@ func permute(nums []int) [][]int {
 				newList[i], newList[0] = newList[0], newList[i]
 				ans = append(ans, newList)
 			}
+			//已经获取了少一个元素的数组，能产生的全部全排列，可以将其踢出
 			ans = ans[1:]
 		}
 	}
@@ -1435,4 +1548,64 @@ func TestTriple(t *testing.T) {
 	nums := []int{-2, 0, 0, 2, 2}
 	rs := Triple(nums)
 	fmt.Printf("rs:%v\n", rs)
+}
+
+type MyHeap struct {
+	list []int
+}
+
+func (h *MyHeap) Push(elem int) {
+	h.list = append(h.list, elem)
+	pos := len(h.list) - 1
+	for pos > 0 {
+		parentPos := (pos - 1) / 2
+		if h.list[parentPos] > h.list[pos] {
+			h.list[parentPos], h.list[pos] = h.list[pos], h.list[parentPos]
+		}
+		//fmt.Printf("pos:%v\n", pos)
+		pos = parentPos
+	}
+	//for _, value := range h.list {
+	//	fmt.Printf("%v\t", value)
+	//}
+}
+
+func (h *MyHeap) Pop() int {
+	listLen := len(h.list)
+	if listLen <= 0 {
+		return math.MaxInt
+	}
+
+	elem := h.list[0]
+	h.list[0] = h.list[listLen-1]
+	listLen = listLen - 1
+	h.list = h.list[:listLen]
+
+	pos := 0
+	for pos < listLen {
+		childPos := 2*pos + 1
+		if childPos < listLen && h.list[childPos] < h.list[pos] {
+			h.list[childPos], h.list[pos] = h.list[pos], h.list[childPos]
+		}
+		if childPos+1 < listLen && h.list[childPos+1] < h.list[pos] {
+			childPos = childPos + 1
+			h.list[childPos], h.list[pos] = h.list[pos], h.list[childPos]
+		}
+		pos = childPos
+	}
+
+	return elem
+}
+
+func TestHead(t *testing.T) {
+	myHeap := MyHeap{
+		list: make([]int, 0),
+	}
+	for i := 0; i < 10; i++ {
+		myHeap.Push(10 - i)
+	}
+	for i := 0; i < 1; i++ {
+		rs := myHeap.Pop()
+		fmt.Printf("%v\n", rs)
+	}
 }
