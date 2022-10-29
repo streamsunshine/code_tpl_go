@@ -2,20 +2,26 @@ package question
 
 import (
 	"container/heap"
+	"encoding/json"
 	"fmt"
 	"golang.org/x/tools/container/intsets"
 	"math"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 /*
  * @lc app=leetcode.cn id=2 lang=golang
  *
  * [2] 两数相加
+ * 链表, 退出循环
  *
- * 当两个条件满足一个就退出的条件如何写；如何避免处理链表头指针为空。
+ * 当两个条件满足一个就退出的条件如何写；
+ * 如何避免处理链表头指针为空。
  */
 
 // @lc code=start
@@ -60,6 +66,8 @@ func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
  * @lc app=leetcode.cn id=3 lang=golang
  *
  * [3] 无重复字符的最长子串
+ * 连续截取的才算。
+ * 字符串遍历，剪枝
  *
  * 我这里的方案的区别，利用了 map 记录位置，实现了左侧可以跳跃，不必一个一个挪动
  *
@@ -102,6 +110,18 @@ func TestLengthOfLongestSubstrin(t *testing.T) {
 // @lc code=end
 
 // 155. 最小栈  s
+// 能在常数时间内检索到最小元素的栈
+// 通过多维护一个栈，实现常数时间的返回。而最小堆要 o(logn) 的复杂度。
+
+/**
+ * Your MinStack object will be instantiated and called as such:
+ * obj := Constructor();
+ * obj.Push(val);
+ * obj.Pop();
+ * param_3 := obj.Top();
+ * param_4 := obj.GetMin();
+ */
+
 type MinStack struct {
 	stack    []int
 	minStack []int
@@ -146,16 +166,11 @@ func (this *MinStack) GetMin() int {
 	return this.minStack[len(this.minStack)-1]
 }
 
-/**
- * Your MinStack object will be instantiated and called as such:
- * obj := Constructor();
- * obj.Push(val);
- * obj.Pop();
- * param_3 := obj.Top();
- * param_4 := obj.GetMin();
- */
-
+// @lc code=end 。
 //20. 有效的括号 s
+// 栈
+// 维护数组（栈), 左括号入栈；右括号出栈（判空），最后判断栈是否为空。   能早点发现不匹配。
+// 或者反之，从栈的角度出发，空就填，非空就判断新的符号是否匹配，匹配就缩，否则就长。最后判空
 func isValid(s string) bool {
 	//这里用反向的，每次看前一个是不是当前的左括号。如果不是直接返回就行。
 	pairMap := map[byte]byte{
@@ -187,16 +202,24 @@ func TestIsValid(t *testing.T) {
 }
 
 //739. 每日温度  m
+//给定一个整数数组 temperatures ，表示每天的温度，返回一个数组 answer ，其中 answer[i] 是指对于第 i 天，下一个更高温度出现
+//在几天后。如果气温在这之后都不会升高，请在该位置用 0 来代替。
+//
+// 单调栈（构造一个单点递减的栈，当不单调递减时属于特殊处理的逻辑）
+//
 //除了变量命名，实现上和答案差异不大
 func dailyTemperatures(temperatures []int) []int {
 	ans := make([]int, len(temperatures))
-	stack := make([]int, 0, len(temperatures))
+	stack := make([]int, 0, len(temperatures)) //单调栈 noHigherIndexArr，这里的长度可以设置为 101
 	for index, temperature := range temperatures {
+		//从当前栈的栈顶开始
 		stackIndex := len(stack) - 1
+		//如果栈顶元素小于当前元素，则向前遍历，刷新天数，因为已经找到了更大的就可以移除了。最后停止在没找大更大的 index 处
 		for ; stackIndex >= 0 && temperatures[stack[stackIndex]] < temperature; stackIndex-- {
 			ans[stack[stackIndex]] = index - stack[stackIndex]
 			stack = stack[:stackIndex]
 		}
+		//将当前元素下标保存起来
 		stack = append(stack, index)
 	}
 	return ans
@@ -232,233 +255,245 @@ func TestValue(t *testing.T) {
 //}
 //
 
-//8 整数转罗马数字
-//func myAtoi(s string) int {
-//	lenS := len(s)
-//	num := 0
-//	isNegative := false
+// 8 字符串转整数
+// 请你来实现一个 myAtoi(string s) 函数，使其能将字符串转换成一个 32 位有符号整数（类似 C/C++ 中的 atoi 函数）。
+// 状态机
 //
-//	i := 0
-//	for ; i < lenS; i++ {
-//		if s[i] == ' ' {
-//			continue
-//		}
-//
-//		if s[i] == '-' {
-//			isNegative = true
-//			i++
-//		} else if s[i] == '+' {
-//			i++
-//		}
-//		break
-//	}
-//
-//	for ; i < lenS; i++ {
-//
-//		posNum := int(s[i] - '0')
-//		if posNum < 0 || posNum > 9 {
-//			break
-//		}
-//		newNum := num*10 + posNum
-//		if isNegative && newNum > 1<<31 {
-//			return -(1 << 31)
-//		} else if !isNegative && newNum > 1<<31-1 {
-//			return 1<<31 - 1
-//		}
-//		num = newNum
-//	}
-//
-//	if isNegative {
-//		num = -num
-//	}
-//	return num
-//}
-//
-//func TestValue1(t *testing.T) {
-//	rs := myAtoi("   -12345fajfk")
-//	fmt.Printf("rs:%+v", rs)
-//}
-//
-////  12  整数转罗马
-//func intToRoman(num int) string {
-//	//这里要用数组
-//	numUnitMapRomanStr := map[int]string{
-//		1000: "M",
-//		900:  "CM",
-//		500:  "D",
-//		400:  "CD",
-//		100:  "C",
-//		90:   "XC",
-//		50:   "L",
-//		40:   "XL",
-//		10:   "X",
-//		9:    "IX",
-//		5:    "V",
-//		4:    "IV",
-//		1:    "I",
-//	}
-//	keys := make([]int, 0, len(numUnitMapRomanStr))
-//	for numUnit := range numUnitMapRomanStr {
-//		keys = append(keys, numUnit)
-//	}
-//	fmt.Printf("%+v", keys)
-//	sort.Slice(keys, func(i, j int) bool {
-//		return keys[i] > keys[j]
-//	})
-//	rs := ""
-//	for _, value := range keys {
-//		numUnit, romanStr := value, numUnitMapRomanStr[value]
-//		for num-numUnit >= 0 {
-//			num = num - numUnit
-//			rs += romanStr
-//		}
-//	}
-//	return rs
-//}
-//
-//func TestValue1(t *testing.T) {
-//	rs := intToRoman(58)
-//	fmt.Printf("rs:%+v", rs)
-//}
+// 参考官方解法：https://leetcode.cn/problems/string-to-integer-atoi/    参考中并没有太关注非法数据的问题。
+func myAtoi(s string) int {
+	lenS := len(s)
+	num := 0
+	isNegative := false
 
-// 15 三数之和
-//func threeSum(nums []int) [][]int {
-//	if len(nums) < 3 {
-//		return nil
-//	}
-//	sort.Ints(nums)
-//	fmt.Printf("list:%+v\n", nums)
-//
-//	rs := make([][]int, 0)
-//	numsLen := len(nums)
-//	for first := 0; first < numsLen; first++ {
-//		if first > 0 && nums[first] == nums[first-1] {
-//			continue
-//		}
-//		third := numsLen - 1
-//		diff := 0 - nums[first]
-//		for second := first + 1; second < third; {
-//			if second > first+1 && nums[second] == nums[second-1] {
-//				second++
-//				continue
-//			}
-//			sum := nums[third] + nums[second]
-//			if sum < diff {
-//				second++
-//			} else if sum > diff {
-//				third--
-//			} else if diff == sum {
-//				rs = append(rs, []int{nums[first], nums[second], nums[third]})
-//				second++
-//			}
-//		}
-//	}
-//	return rs
-//}
-//
-//func TestValue1(t *testing.T) {
-//	rs := threeSum([]int{-1, 0, 1, 2, -1, -4, -2, -3, 3, 0, 4})
-//	fmt.Printf("rs:%+v", rs)
-//}
-//
-//func TestCircle(t *testing.T) {
-//
-//	chanA, chanB, chanC := make(chan struct{}), make(chan struct{}), make(chan struct{})
-//	wg := sync.WaitGroup{}
-//	wg.Add(3)
-//	go func() {
-//		defer wg.Done()
-//		for i := 0; i < 1; i++ {
-//			<-chanA
-//			fmt.Println("a")
-//			chanB <- struct{}{}
-//		}
-//		<-chanA
-//	}()
-//	go func() {
-//		defer wg.Done()
-//		for i := 0; i < 1; i++ {
-//			<-chanB
-//			fmt.Println("b")
-//			chanC <- struct{}{}
-//		}
-//	}()
-//	go func() {
-//		defer wg.Done()
-//		for i := 0; i < 1; i++ {
-//			<-chanC
-//			fmt.Println("c")
-//			chanA <- struct{}{}
-//		}
-//	}()
-//	chanA <- struct{}{}
-//
-//	wg.Wait()
-//}
-//
-//func TestSequenceCircle(t *testing.T) {
-//	letterNum := 26
-//	chanList := make([]chan struct{}, letterNum)
-//	for i := 0; i < letterNum; i++ {
-//		chanList[i] = make(chan struct{})
-//	}
-//
-//	for i := 0; i < letterNum; i++ {
-//		go func(seqNo int) {
-//			for j := 0; j < 2; j++ {
-//				<-chanList[seqNo]
-//				fmt.Printf("%c\n", 'A'+seqNo)
-//				chanList[(seqNo+1)%letterNum] <- struct{}{}
-//			}
-//		}(i)
-//	}
-//	chanList[0] <- struct{}{}
-//	time.Sleep(1 * time.Second)
-//}
+	i := 0
+	for ; i < lenS; i++ {
+		if s[i] == ' ' {
+			continue
+		}
 
-//// 17 电话号码的字母组合
-////递归可以不阶段字符串，而是传入一个 index
-//var numStrMap = map[int]string{
-//	2: "abc",
-//	3: "def",
-//	4: "ghi",
-//	5: "jkl",
-//	6: "mno",
-//	7: "pqrs",
-//	8: "tuv",
-//	9: "wxyz",
-//}
+		if s[i] == '-' {
+			isNegative = true
+			i++
+		} else if s[i] == '+' {
+			i++
+		}
+		break
+	}
+
+	for ; i < lenS; i++ {
+
+		posNum := int(s[i] - '0')
+		if posNum < 0 || posNum > 9 {
+			break
+		}
+		newNum := num*10 + posNum
+		if isNegative && newNum > 1<<31 {
+			return -(1 << 31)
+		} else if !isNegative && newNum > 1<<31-1 {
+			return 1<<31 - 1
+		}
+		num = newNum
+	}
+
+	if isNegative {
+		num = -num
+	}
+	return num
+}
+
+func TestMyAtoi(t *testing.T) {
+	rs := myAtoi("   -12345fajfk")
+	fmt.Printf("rs:%+v", rs)
+}
+
+//  12  整数转罗马
+// 比较基础，考察点不多
 //
-//func letterCombinations(digits string) []string {
-//	if len(digits) < 1 {
-//		return []string{}
-//	}
-//	return recurLetterCombinations("", digits)
-//}
+// 与答案中的一个解法类似
+func intToRoman(num int) string {
+	//这里要用数组
+	numUnitMapRomanStr := map[int]string{
+		1000: "M",
+		900:  "CM",
+		500:  "D",
+		400:  "CD",
+		100:  "C",
+		90:   "XC",
+		50:   "L",
+		40:   "XL",
+		10:   "X",
+		9:    "IX",
+		5:    "V",
+		4:    "IV",
+		1:    "I",
+	}
+	keys := make([]int, 0, len(numUnitMapRomanStr))
+	for numUnit := range numUnitMapRomanStr {
+		keys = append(keys, numUnit)
+	}
+	fmt.Printf("%+v", keys)
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] > keys[j]
+	})
+	rs := ""
+	for _, value := range keys {
+		numUnit, romanStr := value, numUnitMapRomanStr[value]
+		for num-numUnit >= 0 {
+			num = num - numUnit
+			rs += romanStr
+		}
+	}
+	return rs
+}
+
+func TestIntToRoman(t *testing.T) {
+	rs := intToRoman(58)
+	fmt.Printf("rs:%+v", rs)
+}
+
+//15 三数之和
+//排序跳过防重，双指针法
 //
-//func recurLetterCombinations(pref string, digits string) []string {
-//	if len(digits) < 1 {
-//		return []string{pref}
-//	}
-//
-//	digit := string(digits[0])
-//	num, _ := strconv.ParseInt(digit, 10, 32)
-//	numStr := numStrMap[int(num)]
-//	//fmt.Printf("num:%v, numStr:%v\n", num, numStr)
-//
-//	rs := []string{}
-//	for i := 0; i < len(numStr); i++ {
-//		tmpRs := recurLetterCombinations(pref+string(numStr[i]), digits[1:])
-//		//fmt.Printf("pref:%v, tmpRs:%v\n", pref, tmpRs)
-//		rs = append(rs, tmpRs...)
-//	}
-//	return rs
-//}
-//
-//func TestValue17(t *testing.T) {
-//	rs := letterCombinations("2")
-//	fmt.Printf("rs :%+v", rs)
-//}
+//遍历数组，取差，然后双指针凑这个差值
+func threeSum(nums []int) [][]int {
+	if len(nums) < 3 {
+		return nil
+	}
+	sort.Ints(nums)
+	fmt.Printf("list:%+v\n", nums)
+
+	rs := make([][]int, 0)
+	numsLen := len(nums)
+	for first := 0; first < numsLen; first++ {
+		if first > 0 && nums[first] == nums[first-1] {
+			continue
+		}
+		third := numsLen - 1
+		diff := 0 - nums[first]
+		for second := first + 1; second < third; {
+			if second > first+1 && nums[second] == nums[second-1] {
+				second++
+				continue
+			}
+			sum := nums[third] + nums[second]
+			if sum < diff {
+				second++
+			} else if sum > diff {
+				third--
+			} else if diff == sum {
+				rs = append(rs, []int{nums[first], nums[second], nums[third]})
+				second++
+			}
+		}
+	}
+	return rs
+}
+
+func TestThreeSum(t *testing.T) {
+	rs := threeSum([]int{-1, 0, 1, 2, -1, -4, -2, -3, 3, 0, 4})
+	fmt.Printf("rs:%+v", rs)
+}
+
+// 面试真题。 利用 waitgroup，顺序打印字符
+func TestCircle(t *testing.T) {
+	chanA, chanB, chanC := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 1; i++ {
+			<-chanA
+			fmt.Println("a")
+			chanB <- struct{}{}
+		}
+		<-chanA
+	}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 1; i++ {
+			<-chanB
+			fmt.Println("b")
+			chanC <- struct{}{}
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 1; i++ {
+			<-chanC
+			fmt.Println("c")
+			chanA <- struct{}{}
+		}
+	}()
+	chanA <- struct{}{}
+
+	wg.Wait()
+}
+
+func TestSequenceCircle(t *testing.T) {
+	letterNum := 26
+	chanList := make([]chan struct{}, letterNum)
+	for i := 0; i < letterNum; i++ {
+		chanList[i] = make(chan struct{})
+	}
+
+	for i := 0; i < letterNum; i++ {
+		go func(seqNo int) {
+			for j := 0; j < 2; j++ {
+				<-chanList[seqNo]
+				fmt.Printf("%c\n", 'A'+seqNo)
+				chanList[(seqNo+1)%letterNum] <- struct{}{}
+			}
+		}(i)
+	}
+	chanList[0] <- struct{}{}
+	time.Sleep(1 * time.Second)
+}
+
+// 17 电话号码的字母组合
+// 给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。
+// 回溯，递归
+//与答案的区别：递归可以不截断字符串，而是传入一个 index
+var numStrMap = map[int]string{
+	2: "abc",
+	3: "def",
+	4: "ghi",
+	5: "jkl",
+	6: "mno",
+	7: "pqrs",
+	8: "tuv",
+	9: "wxyz",
+}
+
+func letterCombinations(digits string) []string {
+	if len(digits) < 1 {
+		return []string{}
+	}
+	return recurLetterCombinations("", digits)
+}
+
+func recurLetterCombinations(pref string, digits string) []string {
+	if len(digits) < 1 {
+		return []string{pref}
+	}
+
+	digit := string(digits[0])
+	num, _ := strconv.ParseInt(digit, 10, 32)
+	numStr := numStrMap[int(num)]
+	//fmt.Printf("num:%v, numStr:%v\n", num, numStr)
+
+	rs := []string{}
+	for i := 0; i < len(numStr); i++ {
+		tmpRs := recurLetterCombinations(pref+string(numStr[i]), digits[1:])
+		//fmt.Printf("pref:%v, tmpRs:%v\n", pref, tmpRs)
+		rs = append(rs, tmpRs...)
+	}
+	return rs
+}
+
+func TestLetterCombinations(t *testing.T) {
+	rs := letterCombinations("2")
+	fmt.Printf("rs :%+v", rs)
+}
 
 // 测试结构体定义，指针结构体和直接定义的区别
 //type Person struct {
@@ -497,124 +532,123 @@ func TestValue(t *testing.T) {
 //	fmt.Println(stefno.howOld())
 //}
 
-////做的有点复杂，还是应该想三数之和那样，写两个循环，然后用双指针法
-////目前的做法，复杂度不满足要求。
-////不要因为某个小困难就放弃整个方案。
-//var elemList = make([]int, 4)
-//var rsList = make([][]int, 0)
+// 18 四数之和
+// 排序跳过去重，双指针法
 //
-//func fourSum(nums []int, target int) [][]int {
-//	sort.Ints(nums)
-//	//fmt.Printf("nums:%v", nums)
-//
-//	elemList = make([]int, 4)
-//	rsList = make([][]int, 0)
-//
-//	NumSumRecur(nums, 0, target, 0)
-//	return rsList
-//}
-//
-//func NumSumRecur(nums []int, start int, target int, count int) {
-//	if count > 3 {
-//		//fmt.Printf("return elemList:%v,start:%v,target:%v,count:%v\n", elemList, start, target, count)
-//		return
-//	}
-//	//fmt.Printf("elemList:%v,start:%v,target:%v,count:%v\n", elemList, start, target, count)
-//
-//	numLen := len(nums)
-//	for index := start; index < numLen; index++ {
-//		//fmt.Printf("for elemList:%v,index:%v,start:%v,count:%v\n", elemList, index, start, count)
-//
-//		if index > start && nums[index] == nums[index-1] {
-//			//fmt.Println("1")
-//			continue
-//		}
-//		elemList[count] = nums[index]
-//		//if nums[index] > target {
-//		//	fmt.Println("2")
-//		//	break
-//		//} else
-//		if count == 3 && nums[index] == target {
-//			//fmt.Println("3")
-//
-//			rsList = append(rsList, []int{elemList[0], elemList[1], elemList[2], elemList[3]})
-//			//fmt.Printf("rs:%v\n", rsList)
-//
-//			return
-//		} else if count != 3 {
-//			//fmt.Println("4")
-//			NumSumRecur(nums, index+1, target-nums[index], count+1)
-//		} else {
-//			//fmt.Println("5")
-//
-//		}
-//	}
-//	return
-//}
-//
-//func TestValueFourSUm(t *testing.T) {
-//	rs := fourSum([]int{1, -2, -5, -4, -3, 3, 3, 5}, -11)
-//	fmt.Printf("rs:%v\n", rs)
-//}
+//做的有点复杂，还是应该想三数之和那样，写两个循环，然后用双指针法。降低复杂度的方法就是双指针，其余就看几层循环了。
+//目前的做法，复杂度不满足要求。
+//不要因为某个小困难就放弃整个方案。
+var elemList = make([]int, 4)
+var rsList = make([][]int, 0)
+
+func fourSum(nums []int, target int) [][]int {
+	sort.Ints(nums)
+	//fmt.Printf("nums:%v", nums)
+
+	elemList = make([]int, 4)
+	rsList = make([][]int, 0)
+
+	NumSumRecur(nums, 0, target, 0)
+	return rsList
+}
+
+func NumSumRecur(nums []int, start int, target int, count int) {
+	if count > 3 {
+		//fmt.Printf("return elemList:%v,start:%v,target:%v,count:%v\n", elemList, start, target, count)
+		return
+	}
+	//fmt.Printf("elemList:%v,start:%v,target:%v,count:%v\n", elemList, start, target, count)
+
+	numLen := len(nums)
+	for index := start; index < numLen; index++ {
+		//fmt.Printf("for elemList:%v,index:%v,start:%v,count:%v\n", elemList, index, start, count)
+
+		if index > start && nums[index] == nums[index-1] {
+			//fmt.Println("1")
+			continue
+		}
+		elemList[count] = nums[index]
+		//if nums[index] > target {
+		//	fmt.Println("2")
+		//	break
+		//} else
+		if count == 3 && nums[index] == target {
+			//fmt.Println("3")
+
+			rsList = append(rsList, []int{elemList[0], elemList[1], elemList[2], elemList[3]})
+			//fmt.Printf("rs:%v\n", rsList)
+
+			return
+		} else if count != 3 {
+			//fmt.Println("4")
+			NumSumRecur(nums, index+1, target-nums[index], count+1)
+		} else {
+			//fmt.Println("5")
+
+		}
+	}
+	return
+}
+
+func TestValueFourSUm(t *testing.T) {
+	rs := fourSum([]int{1, -2, -5, -4, -3, 3, 3, 5}, -11)
+	fmt.Printf("rs:%v\n", rs)
+}
 
 /**
- * Definition for singly-linked list.
- * type ListNode struct {
- *     Val int
- *     Next *ListNode
- * }
+ * 19 删除链表的第 N 个节点
+ * 给你一个链表，删除链表的倒数第 n 个结点，并且返回链表的头结点。
+ * 哑节点（不用特殊处理头），双指针
+ *
+ *
  */
-//
-//type ListNode struct {
-//	Val  int
-//	Next *ListNode
-//}
-//
-//func removeNthFromEnd(head *ListNode, n int) *ListNode {
-//	end := head
-//	count := 0
-//	for ; end != nil && count < n; count++ {
-//		end = end.Next
-//	}
-//	start := head
-//	for end != nil && end.Next != nil {
-//		end = end.Next
-//		start = start.Next
-//	}
-//	if end != nil {
-//		start.Next = start.Next.Next
-//	} else if n == count {
-//		return head.Next
-//	}
-//	return head
-//}
-//
-//func TestRemoveNth(t *testing.T) {
-//	var next *ListNode
-//	for i := 0; i < 3; i++ {
-//		tmp := &ListNode{
-//			Val:  i,
-//			Next: next,
-//		}
-//		next = tmp
-//	}
-//	head := next
-//	index := head
-//
-//	rs := removeNthFromEnd(head, 4)
-//
-//	index = rs
-//	for index != nil {
-//		fmt.Printf("var:%v\n", index.Val)
-//		index = index.Next
-//	}
-//
-//}
+func removeNthFromEnd(head *ListNode, n int) *ListNode {
+	end := head
+	count := 0
+	for ; end != nil && count < n; count++ {
+		end = end.Next
+	}
+	start := head
+	for end != nil && end.Next != nil {
+		end = end.Next
+		start = start.Next
+	}
+	if end != nil {
+		start.Next = start.Next.Next
+	} else if n == count {
+		return head.Next
+	}
+	return head
+}
+
+func TestRemoveNth(t *testing.T) {
+	var next *ListNode
+	for i := 0; i < 3; i++ {
+		tmp := &ListNode{
+			Val:  i,
+			Next: next,
+		}
+		next = tmp
+	}
+	head := next
+	index := head
+
+	rs := removeNthFromEnd(head, 4)
+
+	index = rs
+	for index != nil {
+		fmt.Printf("var:%v\n", index.Val)
+		index = index.Next
+	}
+
+}
 
 /*
  * @lc app=leetcode.cn id=22 lang=golang
- *
+ * 数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合
  * [22] 括号生成
+ * 遍历，递归，剪枝
+ *
  * 对于前后添加括号的方式，不满足  (())(())  这样就不行。
  * 要先转换成一个 2^2n 的问题， 然后考虑裁剪，比如 ( 和 ) 都是 n 个
  */
@@ -660,6 +694,7 @@ func TestGenerateParenthesis(t *testing.T) {
  * @lc app=leetcode.cn id=24 lang=golang
  *
  * [24] 两两交换链表中的节点
+ * 链表
  */
 func swapPairs(head *ListNode) *ListNode {
 	if head == nil || head.Next == nil {
@@ -770,10 +805,12 @@ func TestDivide(t *testing.T) {
  * @lc app=leetcode.cn id=31 lang=golang
  *
  * [31] 下一个排列
+ * 例如，arr = [1,2,3] ，以下这些都可以视作 arr 的排列：[1,2,3]、[1,3,2]、[3,1,2]、[2,3,1] 。
+ * 规律
  */
 
 // @lc code=start
-//基本想出来思路了。倒序遍历，找到第一个降序，和后面比他大的第一个数交换（不用再向前判断了）。然后交换她左边的数组
+//基本想出来思路了。倒序遍历，找到第一个*降序*，和后面比他大的第一个数交换（不用再向前判断了）。由于后面都是升序，所以反转后面的数组
 func nextPermutation(nums []int) {
 	numsLen := len(nums)
 	if numsLen <= 0 {
@@ -838,6 +875,8 @@ func TestNextPermutation(t *testing.T) {
  * @lc app=leetcode.cn id=33 lang=golang
  *
  * [33] 搜索旋转排序数组
+ * [ 4 5 1 2 3 ]
+ * 扩展，考虑一个上线左右的数组，如何查询。 n+m 的复杂度。从左下角开始移动，大了向上，小了向右
  */
 
 // @lc code=start
@@ -1607,5 +1646,228 @@ func TestHead(t *testing.T) {
 	for i := 0; i < 1; i++ {
 		rs := myHeap.Pop()
 		fmt.Printf("%v\n", rs)
+	}
+}
+
+func GetTopK(nums []int, kNum int) []int {
+	countMap := make(map[int]int, 0)
+	for _, num := range nums {
+		countMap[num]++
+	}
+
+	type KV struct {
+		K int
+		V int
+	}
+	kvList := make([]KV, 0, len(countMap))
+	for k, v := range countMap {
+		kvList = append(kvList, KV{K: k, V: v})
+	}
+	sort.Slice(kvList, func(i, j int) bool {
+		return kvList[i].V > kvList[j].V
+	})
+
+	kvLen := len(kvList)
+	if kNum > kvLen {
+		kNum = kvLen
+	}
+	rs := make([]int, 0, kNum)
+	i := 0
+	for ; i < kNum; i++ {
+		rs = append(rs, kvList[i].K)
+	}
+	for j := i; j < kvLen && kvList[i-1].V == kvList[j].V; j++ {
+		rs = append(rs, kvList[j].K)
+	}
+
+	return rs
+}
+
+func TestGetTopK(t *testing.T) {
+	nums := []int{1, 2, 3, 4, 5, 6, 7, 6, 7}
+	rs := GetTopK(nums, 3)
+	fmt.Printf("rs:%v\n", rs)
+}
+
+//
+//func TestGetAb(t *testing.T) {
+//	n, m := 0, 0
+//	_, _ = fmt.Scanf("%d, %d", &n, &m)
+//
+//	userList := make([]Pq, n)
+//	for id, v := range userList {
+//		v.Id = id
+//	}
+//
+//	totalLine := n * (n - 1) / 2
+//	for i := 0; i <= totalLine; i++ {
+//		x, y, a, b := 0, 0, 0, 0
+//		_, _ = fmt.Scanf("%d, %d, %d, %d", &x, &y, &a, &b)
+//
+//		userList[x-1].Q += a
+//		userList[y-1].Q += n
+//		if a > b {
+//			userList[x-1].P += 1
+//		} else {
+//			userList[x-1].P += 1
+//		}
+//	}
+//
+//	sort.Slice(userList, func(i, j int) bool {
+//		if userList[i].P > userList[j].P {
+//			return true
+//		} else if userList[i].P == userList[j].P && userList[i].Q > userList[i].Q {
+//			return true
+//		}
+//		return false
+//	})
+//
+//	rs := make(map[int]struct{}, n)
+//	for index, v := range userList {
+//		if index < m {
+//			rs[v.Id] = struct{}{}
+//		} else {
+//			break
+//		}
+//	}
+//
+//	for i := 0; i < n; i++ {
+//		num := 0
+//		if _, exist := rs[i]; exist {
+//			num = 1
+//		}
+//		fmt.Printf("%d", num)
+//	}
+//}
+
+/*
+ * @lc app=leetcode.cn id=38 lang=golang
+ *
+ * [38] 外观数列
+ */
+
+// @lc code=start
+func countAndSay(n int) string {
+	if n == 1 {
+		return "1"
+	}
+	lastStr := countAndSay(n - 1)
+	rs := make([]byte, 0)
+
+	lastBytes := []byte(lastStr)
+	count := 0
+	for index, char := range lastBytes {
+		if index != 0 && char != lastBytes[index-1] {
+			rs = append(rs, byte('0'+count), lastBytes[index-1])
+			count = 1
+		} else {
+			count += 1
+		}
+	}
+	rs = append(rs, byte('0'+count), lastBytes[len(lastBytes)-1])
+	//fmt.Printf("n:%d, rs:%v\n", n, string(rs))
+	return string(rs)
+}
+
+// @lc code=end
+
+func TestCountAndSay(t *testing.T) {
+	rs := countAndSay(5)
+	fmt.Printf("rs: %v\n", rs)
+}
+
+/*
+ * @lc app=leetcode.cn id=40 lang=golang
+ *
+ * [40] 组合总和 II
+ * 1、对重复的 i 要特别处理，增加一个计数，避免 1 2 3 .. 个的重复运算。  -- 可以在通用的基础上优化
+ * 2、排序：由于数值是递增的，可以用于剪枝；同时也方面上面的统计;
+ * 3、顺序处理的加上上一步的处理，可以不用 map 去重。
+ */
+
+// @lc code=start
+
+var rsMap map[string][]int
+
+func combinationSum2(candidates []int, target int) [][]int {
+	rsMap = make(map[string][]int)
+	sort.Ints(candidates)
+	initList := make([]int, 0, 10)
+	combinationSum2Recur(initList, candidates, target)
+
+	rs := make([][]int, 0, len(rsMap))
+	for _, elem := range rsMap {
+		rs = append(rs, elem)
+	}
+	return rs
+}
+
+func combinationSum2Recur(list []int, candidates []int, target int) {
+	if len(candidates) == 0 {
+		return
+	}
+
+	val := candidates[0]
+
+	count := 0
+	for _, cand := range candidates {
+		if cand != val {
+			break
+		}
+		count++
+	}
+	candidates = candidates[count:]
+
+	combinationSum2Recur(list, candidates, target)
+
+	for i := 0; i < count; i++ {
+		list = append(list, val)
+		target -= val
+		if target == 0 {
+			//fmt.Printf("val:%v, list:%v\n", val, list)
+			var str strings.Builder
+			for _, v := range list {
+				str.WriteString(fmt.Sprintf("%d_", v))
+			}
+			rsMap[str.String()] = append([]int{}, list...)
+			return
+		} else if target < 0 {
+			return
+		}
+		combinationSum2Recur(list, candidates, target)
+	}
+}
+
+// @lc code=end
+
+func TestCombinationSum2(t *testing.T) {
+	//list := []int{10, 1, 2, 7, 6, 1, 5}
+	list := []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+	target := 27
+
+	rs := combinationSum2(list, target)
+	for _, list := range rs {
+		fmt.Println(list)
+	}
+}
+
+func TestCombinationSum211(t *testing.T) {
+	type A struct {
+		A int    `json:"a"`
+		B string `json:"b"`
+	}
+	var testList []*A
+	testStr := `[{"a": 1, "b": "www"}, {"a": 2, "b": "wwwa"}]`
+	err := json.Unmarshal([]byte(testStr), &testList)
+	fmt.Printf("list:%v, err:%v", testList, err)
+}
+
+func TestAbc1(t *testing.T) {
+	a = []int{1, 2, 3}
+	b := a
+	b[1] = 100
+	b = append(b, 4)
+	for _, v := range a {
+		fmt.Printf("%d\n", v)
 	}
 }
