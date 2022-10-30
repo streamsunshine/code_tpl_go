@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -1869,5 +1870,11 @@ func TestAbc1(t *testing.T) {
 	b = append(b, 4)
 	for _, v := range a {
 		fmt.Printf("%d\n", v)
-	}
+	}	
+}
+
+func TestAtomic(t *testing.T) {
+	n := int32(0)
+	atomic.AddInt32(&n, 1)
+	fmt.Printf("rs:%v\n", n)
 }
