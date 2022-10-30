@@ -1870,7 +1870,7 @@ func TestAbc1(t *testing.T) {
 	b = append(b, 4)
 	for _, v := range a {
 		fmt.Printf("%d\n", v)
-	}	
+	}
 }
 
 func TestAtomic(t *testing.T) {
@@ -1878,3 +1878,106 @@ func TestAtomic(t *testing.T) {
 	atomic.AddInt32(&n, 1)
 	fmt.Printf("rs:%v\n", n)
 }
+
+/*
+ * @lc app=leetcode.cn id=45 lang=golang
+ *
+ * [45] 跳跃游戏 II
+ * 在此次跳跃评估下次跳跃最远能到哪里。我的解法空间和时间占用偏大。
+ * 用贪心法从头依次遍历。 记录当前点 到 其跳到最远处 之间的点，跳到最远是多少。作为下次跳跃的重点。
+ * 不必担心最远的点有 0 ，因为遍历了中间所有的点，要跳不过去，谁也过不去。
+ */
+
+// @lc code=start
+func jump(nums []int) int {
+	numsLen := len(nums)
+
+	minStepMap := make(map[int]int, numsLen)
+
+	for i := numsLen - 2; i >= 0; i-- {
+		jumpStep := nums[i]
+
+		if i+jumpStep >= numsLen-1 {
+			minStepMap[i] = 1
+			continue
+		}
+
+		stepToEnd := numsLen
+		for j := 1; j <= jumpStep; j++ {
+			nextStepIndex := j + i
+			if stepToEnd > 1+minStepMap[nextStepIndex] {
+				stepToEnd = 1 + minStepMap[nextStepIndex]
+			}
+		}
+		minStepMap[i] = stepToEnd
+	}
+	//for k, v := range minStepMap {
+	//	fmt.Printf("k:%v, v:%v\n", k, v)
+	//}
+	return minStepMap[0]
+}
+
+func TestJump(t *testing.T) {
+	nums := []int{2, 3, 1, 1, 4}
+	rs := jump(nums)
+	fmt.Printf("rs :%v\n", rs)
+}
+
+// @lc code=end
+
+/*
+ * @lc app=leetcode.cn id=47 lang=golang
+ *
+ * [47] 全排列 II
+ * 有两个关键；1、排序，不让相邻的两个相同元素出现在同一个位置即可。2、用给数组的去填空，通过 map 记录已经使用的元素
+ */
+
+// @lc code=start
+func permuteUnique(nums []int) [][]int {
+	sort.Ints(nums)
+
+	rs := make([][]int, 0)
+	numsLen := len(nums)
+	numsUsed := make(map[int]struct{}, 0)
+
+	var recurFunc func(oneList []int, fillIdx int)
+
+	recurFunc = func(oneList []int, fillIdx int) {
+		if fillIdx == numsLen {
+			tmp := append([]int{}, oneList...)
+			rs = append(rs, tmp)
+			return
+		}
+
+		lastIndex := -1
+		for index := 0; index < numsLen; index++ {
+			if _, exist := numsUsed[index]; exist {
+				continue
+			}
+
+			if lastIndex >= 0 && nums[lastIndex] == nums[index] {
+				continue
+			}
+			lastIndex = index
+			numsUsed[index] = struct{}{}
+
+			oneList[fillIdx] = nums[index]
+			//fmt.Printf("list:%v, num:%v, fillId:%v, numsUsed:%v\n", oneList, nums[index], fillIdx, numsUsed)
+
+			recurFunc(oneList, fillIdx+1)
+			delete(numsUsed, index)
+		}
+	}
+
+	oneList := make([]int, numsLen)
+	recurFunc(oneList, 0)
+	return rs
+}
+
+func TestPermuteUnique(t *testing.T) {
+	nums := []int{1, 1, 2}
+	rs := permuteUnique(nums)
+	fmt.Printf("rs:%v\n", rs)
+}
+
+// @lc code=end
