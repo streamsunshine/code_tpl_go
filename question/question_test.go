@@ -1981,3 +1981,50 @@ func TestPermuteUnique(t *testing.T) {
 }
 
 // @lc code=end
+
+/*
+ * @lc app=leetcode.cn id=48 lang=golang
+ *
+ * [48] 旋转图像
+ * 规律推出来了，当时相比于答案的反转还是复杂了一些。  这里只有一条规律， 反转后，列变成行. 行于新列之和为 n-1.
+ * 如果没有记住这个规律，先从最外层，然后向里层，观察 4 * 4 数组的规律即可。
+ */
+
+// @lc code=start
+func rotate(matrix [][]int) {
+	mLen := len(matrix)
+	iterNum := mLen / 2
+
+	for i := 0; i < iterNum; i++ {
+		//第一次循环， 0，0
+		for j := 0; j < mLen-1-2*i; j++ {
+			tmp := matrix[i][i+j]
+			matrix[i][i+j] = matrix[mLen-1-i-j][i]
+			matrix[mLen-1-i-j][i] = matrix[mLen-1-i][mLen-1-i-j]
+			matrix[mLen-1-i][mLen-1-i-j] = matrix[i+j][mLen-1-i]
+			matrix[i+j][mLen-1-i] = tmp
+			//tmp := matrix[i][i]
+			//matrix[i][i] = matrix[mLen-1-i][i]
+			//matrix[mLen-1-i][i] = matrix[mLen-1-i][mLen-1-i]
+			//matrix[mLen-1-i][mLen-1-i] = matrix[i][mLen-1-i]
+			//matrix[i][mLen-1-i] = tmp
+		}
+	}
+}
+
+func TestRotate(t *testing.T) {
+	testMatrix := [][]int{
+		{5, 1, 9, 11}, {2, 4, 8, 10},
+		{13, 3, 6, 7}, {15, 14, 12, 16},
+	}
+	rotate(testMatrix)
+
+	for _, v := range testMatrix {
+		for _, val := range v {
+			fmt.Printf("%v\t", val)
+		}
+		fmt.Printf("\n")
+	}
+}
+
+// @lc code=end
