@@ -2028,3 +2028,46 @@ func TestRotate(t *testing.T) {
 }
 
 // @lc code=end
+
+/*
+ * @lc app=leetcode.cn id=49 lang=golang
+ *
+ * [49] 字母异位词分组
+ */
+
+// @lc code=start
+func groupAnagrams(strs []string) [][]string {
+	strListMap := make(map[string][]string, 0)
+	for _, v := range strs {
+		byteList := []byte(v)
+		sort.Slice(byteList, func(i, j int) bool {
+			return byteList[i] < byteList[j]
+		})
+		str := string(byteList)
+		if _, exist := strListMap[str]; exist {
+			strListMap[str] = append(strListMap[str], v)
+		} else {
+			strListMap[str] = []string{v}
+		}
+	}
+	rs := make([][]string, 0)
+	for _, strList := range strListMap {
+		rs = append(rs, strList)
+	}
+	return rs
+}
+
+func TestGroupAnagrams(t *testing.T) {
+	testMatrix := []string{"eat", "tea", "tan", "ate", "nat", "bat"}
+
+	rs := groupAnagrams(testMatrix)
+
+	for _, v := range rs {
+		for _, val := range v {
+			fmt.Printf("%v\t", val)
+		}
+		fmt.Printf("\n")
+	}
+}
+
+// @lc code=end
