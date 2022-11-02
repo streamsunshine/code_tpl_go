@@ -4,7 +4,10 @@ import (
 	"container/heap"
 	"encoding/json"
 	"fmt"
+	"github.com/gookit/properties"
 	"golang.org/x/tools/container/intsets"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"math"
 	"sort"
 	"strconv"
@@ -2033,6 +2036,7 @@ func TestRotate(t *testing.T) {
  * @lc app=leetcode.cn id=49 lang=golang
  *
  * [49] 字母异位词分组
+ * 也可以把字符出现的次数作为 key，因为都是小写字母，所以 26 个就够了。
  */
 
 // @lc code=start
@@ -2071,3 +2075,94 @@ func TestGroupAnagrams(t *testing.T) {
 }
 
 // @lc code=end
+
+/*
+ * @lc app=leetcode.cn id=50 lang=golang
+ *
+ * [50] Pow(x, n)
+ * 可以采用迭代的方式，移位是 1 就乘到结果中，知道 n 为 0
+ */
+
+// @lc code=start
+func myPow(x float64, n int) float64 {
+	var myPowRecur func(float64, int) float64
+
+	myPowRecur = func(f float64, n int) float64 {
+		if n == 0 {
+			return 1.0
+		} else if n == 1 {
+			return f
+		}
+
+		v := myPowRecur(f, n/2)
+		v = v * v * myPowRecur(f, n%2)
+		return v
+	}
+
+	if n < 0 {
+		return 1 / myPowRecur(x, -n)
+	} else {
+		return myPowRecur(x, n)
+	}
+}
+
+func TestMyPow(t *testing.T) {
+	x := 2.0
+	n := 5
+
+	rs := myPow(x, n)
+	fmt.Printf("%v\n", rs)
+
+}
+
+// @lc code=end
+
+/*
+ * @lc app=leetcode.cn id=53 lang=golang
+ *
+ * [53] 最大子数组和
+ * 这里没想到用动态规划，考虑的是使用双指针法。
+ * 这里还可以进一步优化，在 nums 上面改，不用额外空间。
+ */
+
+// @lc code=start
+func maxSubArray(nums []int) int {
+	if len(nums) == 0 {
+		return math.MaxInt
+	}
+	dp := make([]int, len(nums))
+	maxV := nums[0]
+
+	for idx, v := range nums {
+		if idx == 0 {
+			dp[0] = nums[0]
+		} else if dp[idx-1] > 0 {
+			dp[idx] = dp[idx-1] + v
+		} else {
+			dp[idx] = v
+		}
+		if dp[idx] > maxV {
+			maxV = dp[idx]
+		}
+	}
+	return maxV
+}
+
+// @lc code=end
+
+func TestYaml(t *testing.T) {
+	buff, err := ioutil.ReadFile("custom_config.yaml")
+	if err != nil {
+		fmt.Printf("read err:%v\n", err)
+	}
+	fmt.Printf("buff:%v\n", string(buff))
+	data := make(map[string]interface{}, 0)
+	err = yaml.Unmarshal(buff, &data)
+	if err != nil {
+		fmt.Printf("unmarshal err:%v\n", err)
+	}
+
+	propRs, err := properties.Marshal(data)
+	fmt.Printf("data:%v\n", data)
+	fmt.Printf("propRs:%v, err:%v\n", string(propRs), err)
+}
