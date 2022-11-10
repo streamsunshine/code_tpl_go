@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gookit/properties"
 	"golang.org/x/tools/container/intsets"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml"
 	"io/ioutil"
 	"math"
 	"sort"
@@ -2165,4 +2165,41 @@ func TestYaml(t *testing.T) {
 	propRs, err := properties.Marshal(data)
 	fmt.Printf("data:%v\n", data)
 	fmt.Printf("propRs:%v, err:%v\n", string(propRs), err)
+}
+
+func spiralOrder(matrix [][]int) []int {
+	rowLen := len(matrix)
+	if rowLen <= 0 {
+		return []int{}
+	}
+	columnLen := len(matrix[0])
+
+	rs := make([]int, rowLen*columnLen)
+	for i := 0; i < rowLen/2+rowLen%2; i++ {
+		for j := i; j < columnLen-i; j++ {
+			rs = append(rs, matrix[i][j])
+		}
+		for j := i; j < rowLen-i-1; j++ {
+			rs = append(rs, matrix[j][columnLen-i])
+		}
+		for j := columnLen - i - 1; j >= i; j-- {
+			rs = append(rs, matrix[rowLen-i][j])
+		}
+		for j := rowLen - i - 2; j >= i; j-- {
+			rs = append(rs, matrix[j][columnLen-i])
+		}
+	}
+	return rs
+}
+
+func TestSpiralOrder(t *testing.T) {
+	testMatrix := [][]int{
+		{5, 1, 9, 11}, {2, 4, 8, 10},
+		{13, 3, 6, 7}, {15, 14, 12, 16},
+	}
+	rs := spiralOrder(testMatrix)
+
+	for _, v := range rs {
+		fmt.Printf("%v\t", v)
+	}
 }

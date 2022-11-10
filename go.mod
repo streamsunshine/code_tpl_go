@@ -43,6 +43,5 @@ require (
 	golang.org/x/tools v0.1.12
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/olivere/elastic.v6 v6.2.35
-	gopkg.in/yaml.v2 v2.2.8
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )
