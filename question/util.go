@@ -27,3 +27,12 @@ func InitNodeList(len int) *ListNode {
 	}
 	return next
 }
+
+func Print2lSlice(arr [][]int) {
+	for _, v := range arr {
+		fmt.Printf("\n")
+		for _, val := range v {
+			fmt.Printf("%d\t", val)
+		}
+	}
+}

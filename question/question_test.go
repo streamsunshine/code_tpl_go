@@ -2171,7 +2171,7 @@ func TestYaml(t *testing.T) {
  * @lc app=leetcode.cn id=54 lang=golang
  *
  * [54] 螺旋矩阵
- * 这个虽然做出来了，但是逻辑过于复杂。推算的过程很繁琐。
+ * 这个虽然做出来了，但是逻辑过于复杂。推算的过程很繁琐。在不通过的时候没有仔细分析，随便尝试容易把自己搞乱。
  * 答案的第一个方法设置了一个 direction = [[0,1], [-1,0], [0,-1], [1,0] 的数组，并记录访问过的元素，如果遇到了已访问的就改变方向
  * 第二个方法，设置 top， left， right， bottom 的点位进行遍历，可读性要明显比我的好。尽管思路相同。
  */
@@ -2227,4 +2227,180 @@ func TestSpiralOrder(t *testing.T) {
 	for _, v := range rs {
 		fmt.Printf("%v\t", v)
 	}
+}
+
+/*
+ * @lc app=leetcode.cn id=55 lang=golang
+ *
+ * [55] 跳跃游戏
+ * 判断条件上和答案有些区别，参考了 跳跃游戏 2 的思路。
+ */
+
+// @lc code=start
+func canJump(nums []int) bool {
+	nextEnd := 0
+	for idx, v := range nums {
+		if idx == nextEnd && v == 0 {
+			break
+		}
+		if v+idx > nextEnd {
+			nextEnd = v + idx
+		}
+	}
+	rs := false
+	if nextEnd >= len(nums)-1 {
+		rs = true
+	}
+	return rs
+}
+
+func TestCanJump(t *testing.T) {
+	arr := []int{2, 1, 1, 0, 4}
+	rs := canJump(arr)
+	fmt.Printf("rs:%v\n", rs)
+}
+
+// @lc code=end
+/*
+ * @lc app=leetcode.cn id=56 lang=golang
+ *
+ * [56] 合并区间
+ * 题解用了反证法证明。我一般都是做几个特例，说服了自己就干了，，
+ */
+
+// @lc code=start
+func merge(intervals [][]int) [][]int {
+	sort.Slice(intervals, func(i, j int) bool {
+		if intervals[i][0] < intervals[j][0] {
+			return true
+		}
+		return false
+	})
+	idx := 0
+	for i := 1; i < len(intervals); i++ {
+		if intervals[idx][1] >= intervals[i][0] {
+			if intervals[idx][1] < intervals[i][1] {
+				intervals[idx][1] = intervals[i][1]
+			}
+		} else {
+			idx++
+			intervals[idx] = intervals[i]
+		}
+	}
+	return intervals[:idx+1]
+}
+
+// @lc code=end
+
+func TestMerge(t *testing.T) {
+	arrList := [][]int{
+		{1, 3}, {2, 6}, {8, 10}, {9, 18},
+	}
+	rs := merge(arrList)
+	for _, v := range rs {
+		fmt.Printf("\n")
+		for _, val := range v {
+			fmt.Printf("%d\t", val)
+		}
+	}
+}
+
+/*
+ * @lc app=leetcode.cn id=57 lang=golang
+ *
+ * [57] 插入区间
+ * 答案采用一个循环进行逻辑判断，感觉更加复杂
+ * 这里的插入排序还没整好，第一次写错了
+ */
+
+// @lc code=start
+func insert(intervals [][]int, newInterval []int) [][]int {
+	intervals = append(intervals, newInterval)
+
+	insertPos := len(intervals) - 2
+	for ; insertPos >= 0; insertPos-- {
+		if intervals[insertPos][0] > newInterval[0] {
+			intervals[insertPos+1] = intervals[insertPos]
+		} else {
+			break
+		}
+	}
+	intervals[insertPos+1] = newInterval
+
+	idx := 0
+	for i := 1; i < len(intervals); i++ {
+		if intervals[idx][1] >= intervals[i][0] {
+			if intervals[idx][1] < intervals[i][1] {
+				intervals[idx][1] = intervals[i][1]
+			}
+		} else {
+			idx++
+			intervals[idx] = intervals[i]
+		}
+	}
+
+	return intervals[:idx+1]
+}
+
+// @lc code=end
+func TestInsert(t *testing.T) {
+	arrList := [][]int{
+		//{1, 2}, {3, 6}, {8, 10},
+		{1, 5},
+	}
+	newArr := []int{0, 3}
+	rs := insert(arrList, newArr)
+	for _, v := range rs {
+		fmt.Printf("\n")
+		for _, val := range v {
+			fmt.Printf("%d\t", val)
+		}
+	}
+}
+
+/*
+ * @lc app=leetcode.cn id=59 lang=golang
+ *
+ * [59] 螺旋矩阵 II
+ */
+
+// @lc code=start
+func generateMatrix(n int) [][]int {
+	top, bottom, left, right := 0, n-1, 0, n-1
+	arr := make([][]int, n)
+	for i := 0; i < n; i++ {
+		arr[i] = make([]int, n)
+	}
+	count := 1
+	for i := 0; i < n/2+n%2; i++ {
+		for j := left; j <= right; j++ {
+			arr[top][j] = count
+			count++
+		}
+		for j := top + 1; j <= bottom; j++ {
+			arr[j][right] = count
+			count++
+		}
+		for j := right - 1; j >= left && bottom > top; j-- {
+			arr[bottom][j] = count
+			count++
+		}
+		for j := bottom - 1; j > top && left < right; j-- {
+			arr[j][left] = count
+			count++
+		}
+		top++
+		bottom--
+		left++
+		right--
+	}
+	return arr
+}
+
+// @lc code=end
+
+// @lc code=end
+func TestGenerateMatrix(t *testing.T) {
+	rs := generateMatrix(2)
+	Print2lSlice(rs)
 }
