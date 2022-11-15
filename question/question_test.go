@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gookit/properties"
 	"golang.org/x/tools/container/intsets"
-	"gopkg.in/yaml"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"math"
 	"sort"
@@ -2167,36 +2167,61 @@ func TestYaml(t *testing.T) {
 	fmt.Printf("propRs:%v, err:%v\n", string(propRs), err)
 }
 
+/*
+ * @lc app=leetcode.cn id=54 lang=golang
+ *
+ * [54] 螺旋矩阵
+ * 这个虽然做出来了，但是逻辑过于复杂。推算的过程很繁琐。
+ * 答案的第一个方法设置了一个 direction = [[0,1], [-1,0], [0,-1], [1,0] 的数组，并记录访问过的元素，如果遇到了已访问的就改变方向
+ * 第二个方法，设置 top， left， right， bottom 的点位进行遍历，可读性要明显比我的好。尽管思路相同。
+ */
+
+// @lc code=start
 func spiralOrder(matrix [][]int) []int {
 	rowLen := len(matrix)
 	if rowLen <= 0 {
 		return []int{}
 	}
 	columnLen := len(matrix[0])
+	minLen := columnLen
+	if rowLen < columnLen {
+		minLen = rowLen
+	}
 
-	rs := make([]int, rowLen*columnLen)
-	for i := 0; i < rowLen/2+rowLen%2; i++ {
+	rs := make([]int, 0, rowLen*columnLen)
+	for i := 0; i < minLen/2+minLen%2; i++ {
 		for j := i; j < columnLen-i; j++ {
 			rs = append(rs, matrix[i][j])
 		}
-		for j := i; j < rowLen-i-1; j++ {
-			rs = append(rs, matrix[j][columnLen-i])
+		for j := i + 1; j < rowLen-i; j++ {
+			rs = append(rs, matrix[j][columnLen-i-1])
 		}
-		for j := columnLen - i - 1; j >= i; j-- {
-			rs = append(rs, matrix[rowLen-i][j])
+		if minLen-i-1 > i {
+			for j := columnLen - i - 2; j >= i; j-- {
+				rs = append(rs, matrix[rowLen-i-1][j])
+			}
+			for j := rowLen - i - 2; j > i; j-- {
+				rs = append(rs, matrix[j][i])
+			}
 		}
-		for j := rowLen - i - 2; j >= i; j-- {
-			rs = append(rs, matrix[j][columnLen-i])
-		}
+
 	}
 	return rs
 }
 
+// @lc code=end
 func TestSpiralOrder(t *testing.T) {
 	testMatrix := [][]int{
-		{5, 1, 9, 11}, {2, 4, 8, 10},
-		{13, 3, 6, 7}, {15, 14, 12, 16},
+		{5, 1, 9, 11},
+		{2, 4, 8, 10},
+		{13, 3, 6, 7},
+		{15, 14, 12, 16},
 	}
+	//testMatrix := [][]int{
+	//	{5, 1, 9},
+	//	{2, 4, 8},
+	//	{13, 3, 6},
+	//}
 	rs := spiralOrder(testMatrix)
 
 	for _, v := range rs {
