@@ -717,7 +717,8 @@ func TestRemoveNth(t *testing.T) {
  * 遍历，递归，剪枝
  *
  * 对于前后添加括号的方式，不满足  (())(())  这样就不行。
- * 要先转换成一个 2^2n 的问题， 然后考虑裁剪，比如 ( 和 ) 都是 n 个
+ * 要先转换成一个 2^2n 的问题， 然后考虑裁剪，比如 ( 和 ) 都是 n 个。
+ * 要理解左括号大于右括号，后面只要补充差值的右括号肯定能恢复。
  */
 
 // @lc code=start
@@ -835,9 +836,11 @@ func divide(srcDividend int, srcDivisor int) int {
 	value := uint32(0)
 	rs := uint32(0)
 	indexBit := topBit
+	//类似列式除法，只是除数被除数都是二进制。
 	for ; indexBit > 0; indexBit = indexBit >> 1 {
 		rs = rs << 1
 		value = value << 1
+		//如果此位置为 1，则提取到此轮减法操作的被减数 value 这里。
 		if dividend&indexBit > 0 {
 			value = value + 1
 		}
@@ -958,12 +961,14 @@ func search(nums []int, target int) int {
 		if value == target {
 			return tmp
 		}
+		// tmp 到 end 为有序部分，可用于判断
 		if value <= nums[end] {
 			if target > value && target <= nums[end] {
 				start = tmp + 1
 				continue
 			}
 		} else {
+		    // start 到 tmp 为有序部分，可用于判断
 			if target < nums[start] || target > value {
 				start = tmp + 1
 				continue
@@ -997,6 +1002,9 @@ func TestSearch(t *testing.T) {
 // 思考各个分支条件。如果一个思路不行，要灵活转换
 // 要有使用动态规划的意识
 // 即使看会了状态转移方程，实际代码写出来还是很困难，第一次花了一天，后面再理解一下。
+// f[i][j] 表示 s 的前 i 个字符与 p 中的前 j 个字符是否能够匹配.
+// 如果不是 * 看 f[i-1][j-1] 和 s[i] p[j]; 如果是 * ，且 s[i] p[j-1] 相等，考虑匹配 n 个，则对应 f[i−1][j] （递归往前），
+// 如果匹配 0 个 f[i][j−2]。
 func isMatch(s string, p string) bool {
 	sLen := len(s)
 	pLen := len(p)
@@ -1004,7 +1012,9 @@ func isMatch(s string, p string) bool {
 	for i := 0; i <= sLen; i++ {
 		matchRecord[i] = make([]bool, pLen+1)
 	}
+	// 0, 0 表示两个都是空
 	matchRecord[0][0] = true
+	//这个初始化我也不理解了
 	for j := 2; j <= pLen; j++ {
 		if p[j-1] == '*' {
 			matchRecord[0][j] = matchRecord[0][j-2]
@@ -1013,17 +1023,20 @@ func isMatch(s string, p string) bool {
 
 	for i := 1; i <= sLen; i++ {
 		for j := 1; j <= pLen; j++ {
+		    // 第 j 个元素为 *
 			if p[j-1] == '*' {
 				isMatch := false
+				// i， j-1 相等与否都要判断 i, j-2
 				if j-1 >= 0 {
 					isMatch = matchRecord[i][j-2]
 				}
-
+				//判断 i， j-1 相等的情况
 				if isMatchByte(s[i-1], p[j-2]) {
 					isMatch = isMatch || matchRecord[i-1][j]
 				}
 				matchRecord[i][j] = isMatch
 			} else if isMatchByte(s[i-1], p[j-1]) {
+			    //否则直接判断 i, j 字节是否相等
 				matchRecord[i][j] = matchRecord[i-1][j-1]
 			}
 		}
@@ -1067,15 +1080,7 @@ func TestIsMatch(t *testing.T) {
 
 //@lc code=start
 //答案好简单，差距不是一点半点啊
-//思路是获取第一个等于 target 以及第一个大于 target 的 index -1 。
-//关于 二分法的条件判断，只要处理好
-/*
-n	n+1
-target target
-target  大
-小      target
-三种情况，而不至于死循环即可
-*/
+//思路是获取第一个等于 target 以及第一个大于 target 的 index -1，采用  sort.SearchInts
 
 func searchRange(nums []int, target int) []int {
 	numsLen := len(nums)
@@ -1111,30 +1116,39 @@ func searchRange(nums []int, target int) []int {
 	return []int{forward, start}
 }
 
-//func searchRange(nums []int, target int) []int {
-//	leftmost := sort.SearchInts(nums, target)
-//	if leftmost == len(nums) || nums[leftmost] != target {
-//		return []int{-1, -1}
-//	}
-//	rightmost := MySearchInts(nums, target+1) - 1
-//	return []int{leftmost, rightmost}
-//}
-//
-//func MySearchInts(nums []int, target int) int {
-//	numsLen := len(nums)
-//	start := 0
-//	end := numsLen //如果这里用 numsLen - 1 就会有导致判断失败。
-//
-//	for start < end {
-//		mid := (start + end) >> 1
-//		if nums[mid] >= target {
-//			end = mid
-//		} else {
-//			start = mid + 1
-//		}
-//	}
-//	return start
-//}
+func searchRangeLeetCode(nums []int, target int) []int {
+    leftmost := sort.SearchInts(nums, target)
+    if leftmost == len(nums) || nums[leftmost] != target {
+        return []int{-1, -1}
+    }
+    rightmost := sort.SearchInts(nums, target + 1) - 1
+    return []int{leftmost, rightmost}
+}
+
+func searchRangeTest(nums []int, target int) []int {
+	leftmost := sort.SearchInts(nums, target)
+	if leftmost == len(nums) || nums[leftmost] != target {
+		return []int{-1, -1}
+	}
+	rightmost := MySearchInts(nums, target+1) - 1
+	return []int{leftmost, rightmost}
+}
+
+func MySearchInts(nums []int, target int) int {
+	numsLen := len(nums)
+	start := 0
+	end := numsLen //如果这里用 numsLen - 1 就会有导致判断失败。
+
+	for start < end {
+		mid := (start + end) >> 1
+		if nums[mid] >= target {
+			end = mid
+		} else {
+			start = mid + 1
+		}
+	}
+	return start
+}
 
 func TestSearchRange(t *testing.T) {
 	//nums := []int{1, 4, 4, 4, 4, 5}
@@ -1312,7 +1326,6 @@ func TestBloomFilter(t *testing.T) {
  *     Next *ListNode
  * }
  */
-// 哨兵节点
 func mergeTwoLists(list1 *ListNode, list2 *ListNode) *ListNode {
 	head := &ListNode{}
 	index := head
@@ -1472,6 +1485,15 @@ func TestMergeLists(t *testing.T) {
 
 }
 
+/*
+ * @lc app=leetcode.cn id=39 lang=golang
+ *
+ * [39] 组合总和
+ * 给你一个 无重复元素 的整数数组 candidates 和一个目标整数 target ，找出 candidates 中可以使数字和为目标数 target 的 所有 不同组合
+ *
+ */
+
+// @lc code=start
 var cmbList [][]int
 var tmpList []int
 
@@ -1569,6 +1591,9 @@ func TestPermute(t *testing.T) {
 
 // @lc code=end
 
+/*
+面试真题
+ */
 type Average struct {
 	Sum  int //平均值
 	Cnt  int //计数
@@ -1617,6 +1642,9 @@ func (s *StaticsData) GetResult(objName string) {
 
 }
 
+/*
+面试真题，三数之和
+ */
 func Triple(nums []int) [][]int {
 	sort.Ints(nums)
 	numsLen := len(nums)
@@ -1656,6 +1684,9 @@ func TestTriple(t *testing.T) {
 	fmt.Printf("rs:%v\n", rs)
 }
 
+/*
+自己写的用来联系的堆
+ */
 type MyHeap struct {
 	list []int
 }
@@ -1811,6 +1842,7 @@ func TestGetTopK(t *testing.T) {
  * @lc app=leetcode.cn id=38 lang=golang
  *
  * [38] 外观数列
+ * 「外观数列」是一个整数序列，从数字 1 开始，序列中的每一项都是对前一项的描述。
  */
 
 // @lc code=start
@@ -1995,7 +2027,7 @@ func TestJump(t *testing.T) {
  * @lc app=leetcode.cn id=47 lang=golang
  *
  * [47] 全排列 II
- * 有两个关键；1、排序，不让相邻的两个相同元素出现在同一个位置即可。2、用给数组的去填空，通过 map 记录已经使用的元素
+ * 有两个关键；1、排序，不让相邻的两个相同元素出现在同一个位置即可。2、用给定数组去填空，通过 map 记录已经使用的元素
  */
 
 // @lc code=start
@@ -2016,11 +2048,14 @@ func permuteUnique(nums []int) [][]int {
 		}
 
 		lastIndex := -1
+		//从头遍历所有 nums 中数组，填入当前的 fillIndex
 		for index := 0; index < numsLen; index++ {
+		    //数字已经使用，跳过
 			if _, exist := numsUsed[index]; exist {
 				continue
 			}
 
+			//相同数值在一个 fillIndex 只能使用一次
 			if lastIndex >= 0 && nums[lastIndex] == nums[index] {
 				continue
 			}
@@ -2030,6 +2065,7 @@ func permuteUnique(nums []int) [][]int {
 			oneList[fillIdx] = nums[index]
 			//fmt.Printf("list:%v, num:%v, fillId:%v, numsUsed:%v\n", oneList, nums[index], fillIdx, numsUsed)
 
+			//递归填充下一个位置
 			recurFunc(oneList, fillIdx+1)
 			delete(numsUsed, index)
 		}
