@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"encoding/json"
 	"fmt"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/properties"
 	"golang.org/x/tools/container/intsets"
 	"gopkg.in/yaml.v2"
@@ -2464,5 +2465,7 @@ func generateMatrix(n int) [][]int {
 // @lc code=end
 func TestGenerateMatrix(t *testing.T) {
 	rs := generateMatrix(2)
+	//assert.Eq(t, [][]int{{1, 3}, {4, 3}}, rs, "right")
+	assert.Eq(t, [][]int{{1, 2}, {4, 3}}, rs, "right")
 	Print2lSlice(rs)
 }
