@@ -209,12 +209,15 @@ func TestIsValid(t *testing.T) {
 //给定一个整数数组 temperatures ，表示每天的温度，返回一个数组 answer ，其中 answer[i] 是指对于第 i 天，下一个更高温度出现
 //在几天后。如果气温在这之后都不会升高，请在该位置用 0 来代替。
 //
-// 单调栈（构造一个单点递减的栈，当不单调递减时属于特殊处理的逻辑）
+// 单调栈（构造一个单调递减的栈，当不单调递减时属于特殊处理的逻辑（这个解释都看不懂））
+// 单调栈。从头遍历 temperatures， 如果当前元素小于栈顶，则一直入栈，结果看起来是一个单调栈。当发现温度大于栈顶了，那么一直出栈，
+// 小于当前温度的都找到了，下一个更高温度的位置。
 //
 //除了变量命名，实现上和答案差异不大
+//忘记第一次是否做出来了，再次回顾没有思路了。看了答案才明白。 处理高低变化的问题，先用一个单调栈储存起来。
 func dailyTemperatures(temperatures []int) []int {
 	ans := make([]int, len(temperatures))
-	stack := make([]int, 0, len(temperatures)) //单调栈 noHigherIndexArr，这里的长度可以设置为 101
+	stack := make([]int, 0, len(temperatures)) //单调栈 noHigherIndexArr，这里的容量可以设置为 101
 	for index, temperature := range temperatures {
 		//从当前栈的栈顶开始
 		stackIndex := len(stack) - 1
@@ -262,7 +265,7 @@ func TestValue(t *testing.T) {
 // 8 字符串转整数
 // 请你来实现一个 myAtoi(string s) 函数，使其能将字符串转换成一个 32 位有符号整数（类似 C/C++ 中的 atoi 函数）。
 // 状态机
-//
+// 缺乏将问题转换为状态机的意识，对状态机认识不足，把握不好状态数量和导致状态切换的变量。
 // 参考官方解法：https://leetcode.cn/problems/string-to-integer-atoi/    参考中并没有太关注非法数据的问题。
 func myAtoi(s string) int {
 	lenS := len(s)
@@ -305,8 +308,67 @@ func myAtoi(s string) int {
 	return num
 }
 
+func myAtoi2(s string) int {
+	type State int
+	const (
+		Init   State = 0
+		Signed State = 1
+		Number State = 2
+		End    State = 3
+	)
+	type Action int
+	const (
+		IsSpace  Action = 0
+		Sign     Action = 1
+		IsNumber Action = 2
+		Other    Action = 3
+	)
+	transMap := map[State][]State{
+		Init:   {Init, Signed, Number, End},
+		Signed: {End, End, Number, End},
+		Number: {End, End, Number, End},
+		End:    {End, End, End, End},
+	}
+
+	getAction := func(c byte) Action {
+
+		if c == ' ' {
+			return IsSpace
+		} else if c == '+' || c == '-' {
+			return Sign
+		} else if c-'0' <= 9 {
+			return IsNumber
+		} else {
+			return Other
+		}
+	}
+
+	state := Init
+	sign := 1
+	number := 0
+	for _, v := range []byte(s) {
+		action := getAction(v)
+		state = transMap[state][action]
+		if state == Signed && v == '-' {
+			sign = -1
+		} else if state == Number {
+			tmp := v - '0'
+			number = 10*number + sign*int(tmp)
+		} else if state == End {
+			break
+		}
+
+		if sign > 0 && number > math.MaxInt32 {
+			return math.MaxInt32
+		} else if sign < 0 && number < math.MinInt32 {
+			return math.MinInt32
+		}
+	}
+	return number
+}
+
 func TestMyAtoi(t *testing.T) {
-	rs := myAtoi("   -12345fajfk")
+	rs := myAtoi2("   -12345fajfk")
 	fmt.Printf("rs:%+v", rs)
 }
 

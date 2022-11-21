@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/siddontang/go-log/log"
-	"github.com/siddontang/go-mysql/mysql"
 	"github.com/siddontang/go/ioutil2"
 )
 

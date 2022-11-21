@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"errors"
+	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/siddontang/go-log/log"
-	"github.com/siddontang/go-mysql/canal"
 )
 
 // ErrRuleNotExist is the error if rule is not defined.
@@ -219,7 +219,6 @@ func (r *River) prepareRule() error {
 				if !ok {
 					return fmt.Errorf("wildcard table for %s.%s is not defined in source", rule.Schema, rule.Table)
 				}
-
 
 				rule.prepare()
 

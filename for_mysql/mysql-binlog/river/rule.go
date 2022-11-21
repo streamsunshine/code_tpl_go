@@ -1,7 +1,7 @@
 package river
 
 import (
-	"github.com/siddontang/go-mysql/schema"
+	"github.com/go-mysql-org/go-mysql/schema"
 )
 
 // Rule is the rule for how to sync data from MySQL to ES.
