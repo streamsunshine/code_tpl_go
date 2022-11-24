@@ -496,6 +496,34 @@ func TestCircle(t *testing.T) {
 	wg.Wait()
 }
 
+// 面试真题。 利用 waitgroup，顺序打印字符
+func TestCircle1(t *testing.T) {
+	chanA := make(chan struct{})
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			//这里涉及到先阻塞的先唤醒。如果只用一个，解除阻塞后，在下一轮他就会先阻塞，导致乱序。
+			chanA <- struct{}{}
+			fmt.Println("a")
+			chanA <- struct{}{}
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			<-chanA
+			fmt.Println("b")
+			<-chanA
+		}
+	}()
+
+	//chanA <- struct{}{}
+
+	wg.Wait()
+}
+
 func TestSequenceCircle(t *testing.T) {
 	letterNum := 26
 	chanList := make([]chan struct{}, letterNum)
@@ -968,7 +996,7 @@ func search(nums []int, target int) int {
 				continue
 			}
 		} else {
-		    // start 到 tmp 为有序部分，可用于判断
+			// start 到 tmp 为有序部分，可用于判断
 			if target < nums[start] || target > value {
 				start = tmp + 1
 				continue
@@ -1023,7 +1051,7 @@ func isMatch(s string, p string) bool {
 
 	for i := 1; i <= sLen; i++ {
 		for j := 1; j <= pLen; j++ {
-		    // 第 j 个元素为 *
+			// 第 j 个元素为 *
 			if p[j-1] == '*' {
 				isMatch := false
 				// i， j-1 相等与否都要判断 i, j-2
@@ -1036,7 +1064,7 @@ func isMatch(s string, p string) bool {
 				}
 				matchRecord[i][j] = isMatch
 			} else if isMatchByte(s[i-1], p[j-1]) {
-			    //否则直接判断 i, j 字节是否相等
+				//否则直接判断 i, j 字节是否相等
 				matchRecord[i][j] = matchRecord[i-1][j-1]
 			}
 		}
@@ -1117,12 +1145,12 @@ func searchRange(nums []int, target int) []int {
 }
 
 func searchRangeLeetCode(nums []int, target int) []int {
-    leftmost := sort.SearchInts(nums, target)
-    if leftmost == len(nums) || nums[leftmost] != target {
-        return []int{-1, -1}
-    }
-    rightmost := sort.SearchInts(nums, target + 1) - 1
-    return []int{leftmost, rightmost}
+	leftmost := sort.SearchInts(nums, target)
+	if leftmost == len(nums) || nums[leftmost] != target {
+		return []int{-1, -1}
+	}
+	rightmost := sort.SearchInts(nums, target+1) - 1
+	return []int{leftmost, rightmost}
 }
 
 func searchRangeTest(nums []int, target int) []int {
@@ -1593,7 +1621,7 @@ func TestPermute(t *testing.T) {
 
 /*
 面试真题
- */
+*/
 type Average struct {
 	Sum  int //平均值
 	Cnt  int //计数
@@ -1644,7 +1672,7 @@ func (s *StaticsData) GetResult(objName string) {
 
 /*
 面试真题，三数之和
- */
+*/
 func Triple(nums []int) [][]int {
 	sort.Ints(nums)
 	numsLen := len(nums)
@@ -1686,7 +1714,7 @@ func TestTriple(t *testing.T) {
 
 /*
 自己写的用来联系的堆
- */
+*/
 type MyHeap struct {
 	list []int
 }
@@ -2050,7 +2078,7 @@ func permuteUnique(nums []int) [][]int {
 		lastIndex := -1
 		//从头遍历所有 nums 中数组，填入当前的 fillIndex
 		for index := 0; index < numsLen; index++ {
-		    //数字已经使用，跳过
+			//数字已经使用，跳过
 			if _, exist := numsUsed[index]; exist {
 				continue
 			}

@@ -21,6 +21,7 @@ require (
 	github.com/google/gops v0.3.22
 	github.com/google/wire v0.5.0
 	github.com/googollee/go-socket.io v1.6.0
+	github.com/gookit/goutil v0.5.15
 	github.com/gookit/properties v0.2.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/jinzhu/gorm v1.9.16
@@ -52,7 +53,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gookit/goutil v0.5.15 // indirect
+	github.com/gookit/color v1.5.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
@@ -82,6 +83,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/xdg/stringprep v1.0.3 // indirect
+	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
