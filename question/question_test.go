@@ -3,6 +3,7 @@ package question
 import (
 	"container/heap"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/properties"
@@ -2532,4 +2533,612 @@ func TestGenerateMatrix(t *testing.T) {
 	//assert.Eq(t, [][]int{{1, 3}, {4, 3}}, rs, "right")
 	assert.Eq(t, [][]int{{1, 2}, {4, 3}}, rs, "right")
 	Print2lSlice(rs)
+}
+
+func TestArr(t *testing.T) {
+	a := make([]int, 0, 2)
+	b := append(a, 1)
+	c := append(a, 2)
+	fmt.Printf("b:%v\n", b)
+	fmt.Printf("c:%v\n", c)
+}
+
+func QuickSort1(data []int) {
+	QuickSortRecur1(data, 0, len(data)-1)
+}
+
+func QuickSortRecur1(data []int, start, end int) {
+	if start >= end {
+		return
+	}
+
+	a := start
+	l := end
+	c := end - 1
+	for {
+		for ; a < c && data[a] < data[l]; a++ {
+		}
+		for ; a < c && data[c] > data[l]; c-- {
+		}
+		if a >= c {
+			break
+		}
+		data[a], data[c] = data[c], data[a]
+	}
+	data[a], data[l] = data[l], data[a]
+	QuickSortRecur1(data, start, a-1)
+	QuickSortRecur1(data, a+1, end)
+}
+
+func TestQuickSort1(t *testing.T) {
+	//arr := []int{7, 6, 5, 1, 2, 3}
+	arrP := new([]int)
+	arr := append(*arrP, 7, 6, 5, 4, 1, 2)
+	QuickSort1(arr)
+	fmt.Printf("rs:%v\n", arr)
+}
+
+func JudgeIP(ipStr string) int {
+	ipRange := [][]string{
+		{
+			"1.0.0.0", "126.255.255.255",
+		}, {
+			"128.0.0.0", "191.255.255.255",
+		}, {
+			"192.0.0.0", "223.255.255.255",
+		}, {
+			"224.0.0.0", "239.255.255.255",
+		}, {
+			"240.0.0.0", "255.255.255.255",
+		}, {
+			"0.0.0.0", "0.255.255.255",
+		}, {
+			"127.0.0.0", "127.255.255.255",
+		},
+	}
+
+	return JudgeKind(ipStr, ipRange)
+}
+
+func JudgePrivateIP(ipStr string) bool {
+	ipRange := [][]string{
+		{
+			"10.0.0.0", "10.255.255.255",
+		}, {
+			"172.16.0.0", "172.31.255.255",
+		}, {
+			"192.168.0.0", "192.168.255.255",
+		},
+	}
+	kind := JudgeKind(ipStr, ipRange)
+	if kind < 0 {
+		return false
+	}
+
+	return true
+}
+
+func JudeMask(mask string) bool {
+	elemList := strings.Split(mask, ".")
+	if len(elemList) != 4 {
+		return false
+	}
+	hasZero := false
+	countZero := 0
+	for i := 0; i < 4; i++ {
+		tmp, err := strconv.Atoi(elemList[i])
+		if err != nil {
+			return false
+		}
+		if tmp > 255 {
+			return false
+		}
+		bitMap := 0x1 << 7
+		for i := 0; i < 8; i++ {
+			if tmp&bitMap == 0 {
+				hasZero = true
+				countZero += 1
+			} else if hasZero {
+				return false
+			}
+			bitMap = bitMap >> 1
+		}
+	}
+	if countZero == 0 || countZero == 32 {
+		return false
+	}
+	return true
+}
+
+func JudgeKind(ipStr string, ipRange [][]string) int {
+	elemList := strings.Split(ipStr, ".")
+	kind := 0
+	for idx, v := range ipRange {
+		startElemList := strings.Split(v[0], ".")
+		endElemList := strings.Split(v[1], ".")
+		for i := 0; i < 4; i++ {
+			start, _ := strconv.Atoi(startElemList[i])
+			end, _ := strconv.Atoi(endElemList[i])
+			val, err := strconv.Atoi(elemList[i])
+			if err != nil {
+				return -1
+			}
+
+			if val >= start && val <= end {
+				if i == 3 {
+					return idx
+				}
+				continue
+			}
+			if i != 0 || idx == len(ipRange)-1 {
+				kind = -1
+			}
+			break
+		}
+	}
+	return kind
+}
+
+func TestJudgeIp(t *testing.T) {
+	//ipStr := "10.0.0.0"
+	ipStr := "127.201.56.50"
+	rs := JudgeIP(ipStr)
+	fmt.Printf("%v\n", rs)
+	//	val, err := strconv.Atoi("")
+	//	fmt.Print(val, err)
+	ipMask := "255.0.0.0"
+	//ipMask := "255.255.255.255"
+	rsM := JudeMask(ipMask)
+	fmt.Printf("rs:%v\n", rsM)
+	//errors.New(xxxxx)
+}
+
+type PokerGroupType int
+
+const (
+	PokerGroupTypeSingle PokerGroupType = iota
+	PokerGroupTypeCouple
+	PokerGroupTypeSeq
+	PokerGroupTypeThree
+	PokerGroupTypeBoom
+	PokerGroupTypeKing
+)
+
+func Bigger([]string, []string) (bool, error) {
+	return true, nil
+}
+
+func Smaller([]string, []string) (bool, error) {
+	return false, nil
+}
+
+func Error([]string, []string) (bool, error) {
+	return false, errors.New("ERROR")
+}
+
+func CommonCmp(left []string, right []string) (bool, error) {
+	pokerSeq := []string{"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2", "joker", "JOKER"}
+	leftIdx := -1
+	rightIdx := -1
+	for idx, v := range pokerSeq {
+		if v == left[0] {
+			leftIdx = idx
+		}
+		if v == right[0] {
+			rightIdx = idx
+		}
+	}
+	return leftIdx > rightIdx, nil
+}
+
+func JudePokerSeqType(pokerSeq []string) PokerGroupType {
+	seqLen := len(pokerSeq)
+	switch seqLen {
+	case 1:
+		return PokerGroupTypeSingle
+	case 3:
+		return PokerGroupTypeThree
+	case 4:
+		return PokerGroupTypeBoom
+	default:
+		if seqLen == 2 {
+			if pokerSeq[0] == "joker" || pokerSeq[0] == "JOKER" {
+				return PokerGroupTypeKing
+			}
+			return PokerGroupTypeCouple
+		} else {
+			return PokerGroupTypeSeq
+		}
+	}
+}
+
+var JudgeMap = map[PokerGroupType]map[PokerGroupType]func([]string, []string) (bool, error){
+	PokerGroupTypeSingle: {
+		PokerGroupTypeSingle: CommonCmp,
+		PokerGroupTypeBoom:   Smaller,
+		PokerGroupTypeKing:   Smaller,
+	},
+	PokerGroupTypeCouple: {
+		PokerGroupTypeCouple: CommonCmp,
+		PokerGroupTypeBoom:   Smaller,
+		PokerGroupTypeKing:   Smaller,
+	},
+	PokerGroupTypeThree: {
+		PokerGroupTypeThree: CommonCmp,
+		PokerGroupTypeBoom:  Smaller,
+		PokerGroupTypeKing:  Smaller,
+	}, PokerGroupTypeSeq: {
+		PokerGroupTypeSeq:  CommonCmp,
+		PokerGroupTypeBoom: Smaller,
+		PokerGroupTypeKing: Smaller,
+	}, PokerGroupTypeBoom: {
+		PokerGroupTypeSingle: Bigger,
+		PokerGroupTypeCouple: Bigger,
+		PokerGroupTypeThree:  Bigger,
+		PokerGroupTypeSeq:    Bigger,
+		PokerGroupTypeBoom:   CommonCmp,
+		PokerGroupTypeKing:   Smaller,
+	}, PokerGroupTypeKing: {
+		PokerGroupTypeSingle: Bigger,
+		PokerGroupTypeCouple: Bigger,
+		PokerGroupTypeThree:  Bigger,
+		PokerGroupTypeSeq:    Bigger,
+		PokerGroupTypeBoom:   Bigger,
+	},
+}
+
+func TestJudePoker(t *testing.T) {
+	a := "4-joker\n"
+	a = strings.Replace(a, "\n", "", -1)
+
+	//rd := bufio.NewReader(os.Stdin)
+	//a, _ = rd.ReadString('\n')
+
+	fmt.Print(a + "afds")
+
+	pokerList := strings.Split(a, "-")
+	left := strings.Split(pokerList[0], " ")
+	right := strings.Split(pokerList[1], " ")
+	leftType := JudePokerSeqType(left)
+	rightType := JudePokerSeqType(right)
+	judgeFunc, exist := JudgeMap[leftType][rightType]
+	//if a == "4-joker" {
+	fmt.Print(pokerList, leftType, rightType)
+	//}
+	if !exist {
+		fmt.Print("ERROR")
+	} else {
+		rs, _ := judgeFunc(left, right)
+		if rs {
+			fmt.Printf("%s", pokerList[0])
+		} else {
+			fmt.Printf("%s", pokerList[1])
+		}
+	}
+
+}
+
+//核心通过获取 poker 和 operator 的全排列，然后通过校验是否为 24， 相等则返回。
+func TestJude24(t *testing.T) {
+	dataStr := "4 2 K A"
+	data := strings.Split(dataStr, " ")
+
+	rs := Jude24Poker(data)
+
+	fmt.Printf("rs:%v\n", rs)
+}
+
+func Jude24Poker(data []string) string {
+	// 参数校验
+	for _, val := range data {
+		if val == "joker" || val == "JOKER" {
+			return "ERROR"
+		}
+	}
+
+	testData := make([]string, 4)
+
+	rs := "NONE"
+	//生成运算符的全排列
+	operatorList := []string{"+", "-", "*", "/"}
+	var operatorRecur func(formula []string) bool
+	operatorRecur = func(formula []string) bool {
+		isValid := false
+		if len(formula) == 3 {
+			isValid = CheckValid24(testData, formula)
+			if isValid {
+				rs = MergeFormula(testData, formula)
+			}
+			return isValid
+		}
+
+		formula = append(formula, "+")
+		formulaLen := len(formula)
+		for _, v := range operatorList {
+			formula[formulaLen-1] = v
+			rs := operatorRecur(formula)
+			if rs == true {
+				return true
+			}
+		}
+		return false
+	}
+
+	//获取 poker list 的全排列
+	var pokerPermRecur func(idx int, used map[int]struct{}) bool
+	pokerPermRecur = func(idx int, used map[int]struct{}) bool {
+		if idx >= 4 {
+			rsRecur := operatorRecur([]string{})
+			if rsRecur {
+				return false
+			}
+			return true
+		}
+		for i := 0; i < 4; i++ {
+			if _, exist := used[i]; exist {
+				continue
+			}
+			testData[idx] = data[i]
+			used[i] = struct{}{}
+			permRs := pokerPermRecur(idx+1, used)
+			if permRs == false {
+				return false
+			}
+			delete(used, i)
+		}
+		return true
+	}
+
+	pokerPermRecur(0, make(map[int]struct{}, 0))
+
+	return rs
+}
+
+func CheckValid24(testData []string, formula []string) bool {
+	curVal := transToNum(testData[0])
+	for i := 0; i < 3; i++ {
+		switch formula[i] {
+		case "+":
+			curVal = curVal + transToNum(testData[i+1])
+		case "-":
+			curVal = curVal - transToNum(testData[i+1])
+		case "*":
+			curVal = curVal * transToNum(testData[i+1])
+		case "/":
+			curVal = curVal / transToNum(testData[i+1])
+		}
+	}
+	if curVal == 24 {
+
+		return true
+	}
+	return false
+}
+
+func MergeFormula(testData []string, formula []string) string {
+	rs := testData[0]
+	for i := 0; i < 3; i++ {
+		rs += formula[i] + testData[i+1]
+	}
+	return rs
+}
+
+func transToNum(v string) int {
+	switch v {
+	case "A":
+		return 1
+	case "J":
+		return 11
+	case "Q":
+		return 12
+	case "K":
+		return 13
+	default:
+		tmp, _ := strconv.Atoi(v)
+		return tmp
+	}
+}
+
+var allocateMap = map[int]int{}
+
+var memory = make([]bool, 100)
+
+func TestMemoryAllocate(t *testing.T) {
+	//cNum := 0
+	//for {
+	//	n, _ := fmt.Scan(&cNum)
+	//	if n <= 0 {
+	//		break
+	//	} else {
+	commandList := []string{"REQUEST=10", "REQUEST=80", "REQUEST=10", "REQUEST=20", "RELEASE=0", "RELEASE=90", "REQUEST=20"}
+	cNum := len(commandList)
+	for i := 0; i < cNum; i++ {
+		//command := ""
+		//_, _ = fmt.Scan(&command)
+		command := commandList[i]
+		cList := strings.Split(command, "=")
+		switch cList[0] {
+		case "REQUEST":
+			//handleRequestCommand(cList[1])
+			handleRequestCommand1(cList[1])
+		case "RELEASE":
+			handleReleaseCommand(cList[1])
+		}
+	}
+	//}
+	//}
+
+}
+
+func handleReleaseCommand(addrStr string) {
+	addr, err := strconv.Atoi(addrStr)
+	if err != nil {
+		fmt.Println("error")
+	}
+	if num, exist := allocateMap[addr]; exist {
+		delete(allocateMap, addr)
+		for i := 0; i < num; i++ {
+			memory[addr+i] = false
+		}
+	} else {
+		fmt.Println("error")
+	}
+}
+
+func handleRequestCommand(numStr string) {
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		fmt.Println("error")
+	}
+	if len(allocateMap) == 0 {
+		if num > 100 {
+			fmt.Println("error")
+		}
+		allocateMap[0] = num
+		fmt.Println(0)
+		return
+	}
+
+	addrList := make([]int, 0, len(allocateMap))
+	for k := range allocateMap {
+		addrList = append(addrList, k)
+	}
+	sort.Ints(addrList)
+	//fmt.Println(addrList)
+	lowAddr := (addrList[len(addrList)-1] + allocateMap[addrList[len(addrList)-1]]) % 100
+	hasAllocate := false
+	for idx, addr := range addrList {
+		curCap := allocateMap[addr]
+		isValid := false
+		if addr < addrList[(idx+1)%len(addrList)] {
+			if addr+curCap+num <= addrList[(idx+1)%len(addrList)] {
+				isValid = true
+			}
+		} else {
+			if addr+curCap+num <= addrList[(idx+1)%len(addrList)]+100 {
+				isValid = true
+			}
+		}
+
+		if isValid {
+			//fmt.Println(addr, curCap, num, addrList, idx)
+			lowAddr = addr + curCap
+			allocateMap[lowAddr] = num
+			//fmt.Println(allocateMap)
+			hasAllocate = true
+			fmt.Println(lowAddr)
+			break
+		}
+	}
+	if !hasAllocate {
+		fmt.Println("error")
+	}
+	return
+}
+
+func handleRequestCommand1(numStr string) int {
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		fmt.Println("error")
+		return -1
+	}
+	hasAllocate := false
+	addr := 0
+	for i := 0; i < len(memory); i++ {
+		if memory[i] {
+			continue
+		}
+		addr = i
+		for ; i < len(memory) && !memory[i]; i++ {
+			if i-addr+1 >= num {
+				allocateMap[addr] = num
+				for j := addr; j < addr+num; j++ {
+					memory[j] = true
+				}
+				hasAllocate = true
+				break
+			}
+		}
+		if hasAllocate {
+			fmt.Println(addr)
+			return addr
+		}
+	}
+	fmt.Println("error")
+	return -1
+}
+
+//题目描述
+//现有一个由1到n（n为自然数， 3 <= n <= 9）的数字组成的递增数列：1, 2, 3, …, n。
+//现在请在数列中插入“+”表示加，“-”表示减，或是“ ”表示空白，将两个数字组合在一起（第一个数字前不能插入符号）。
+//计算每个表达式并求它们的和。
+//找出所有和为零的表达式组合。
+//解答要求时间限制：1000ms, 内存限制：256MB
+//
+//输入
+//整数n (3 <= n <= 9)。
+//输出
+//按照ASCII码的顺序，输出所有在每对数字间插入“+”“-” 或“ ”后能得到和为零的数列。(注意:就算两个数字之间没有插入符号也应该保留空格)
+//样例
+//输入样例 1 复制
+//7
+//输出样例 1
+//1+2-3+4-5-6+7
+//1+2-3-4+5+6-7
+//1-2 3+4+5+6+7
+//1-2 3-4 5+6 7
+//1-2+3+4-5+6-7
+//1-2-3-4-5+6+7
+//提示样例 1
+//1-2 3+4+5+6+7表示1-23+4+5+6+7
+//1-2 3-4 5+6 7表示1-23-45+67
+func GetZeroList(n int) {
+	var genOperator func(m int)
+	operatorLen := n - 1
+	operatorList := make([]byte, operatorLen)
+	operKindList := []byte{' ', '+', '-'}
+	genOperator = func(m int) {
+		if m == operatorLen {
+			express := []byte{'1'}
+			//fmt.Println(operatorList)
+
+			num := []int{1}
+			oper := []byte{}
+			for i := 0; i < operatorLen; i++ {
+				v := operatorList[i]
+				express = append(express, v, byte('0'+i+2))
+				if v == ' ' {
+					num[len(num)-1] = num[len(num)-1]*10 + i + 2
+				} else {
+					oper = append(oper, v)
+					num = append(num, i+2)
+				}
+			}
+
+			rs := num[0]
+			for idx, v := range oper {
+				switch v {
+				case '+':
+					rs = rs + num[idx+1]
+				case '-':
+					rs = rs - num[idx+1]
+				}
+			}
+			if rs == 0 {
+				fmt.Println(string(express))
+			}
+			//fmt.Printf("exp:%s, rs:%d\n", string(express), num[0])
+
+			return
+		}
+		for _, v := range operKindList {
+			operatorList[m] = v
+			genOperator(m + 1)
+		}
+	}
+	genOperator(0)
+}
+
+func TestCalExpress(t *testing.T) {
+	GetZeroList(7)
 }
