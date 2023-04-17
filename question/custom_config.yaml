@@ -1,32 +1,32 @@
 # elasticsearch地址
 #elasticsearch-burst_case:
-#  url: 9.143.111.42:9200
-#  user: elastic
-#  secret: KhhbofEpXv5zgutT
+#  url: 127.0.0.1:9200
+#  user: 1111
+#  secret: 12345
 
 # redis配置  用于防重放，需要配置
 redispool-user:
-  host: 11.135.64.248
+  host: 127.0.0.1
   port: 6379
-  password: "&E=h6A:JnlfJl+"
+  password: "12345"
 
 # redis配置
 redispool-game:
-  host: 11.135.64.248
+  host: 127.0.0.1
   port: 6379
-  password: "&E=h6A:JnlfJl+"
+  password: "12345"
 
 # redis配置
 redispool-gamessd:
-  host: 11.135.64.248
+  host: 127.0.0.1
   port: 6379
-  password: "&E=h6A:JnlfJl+"
+  password: "12345"
 
 # redis配置
 redispool-archive:
-  host: 11.135.64.248
+  host: 127.0.0.1
   port: 6379
-  password: "&E=h6A:JnlfJl+"
+  password: "12345"
 
 server:
   env: test
