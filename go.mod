@@ -42,6 +42,8 @@ require (
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/olivere/elastic.v6 v6.2.35
 	gopkg.in/yaml.v2 v2.4.0
+	gorm.io/driver/mysql v1.5.1
+	gorm.io/gorm v1.25.1
 )
 
 require (
@@ -51,6 +53,7 @@ require (
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -63,6 +66,7 @@ require (
 	github.com/jcmturner/gokrb5/v8 v8.4.2 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.12.2 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

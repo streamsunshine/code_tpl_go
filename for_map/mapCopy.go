@@ -1,6 +1,7 @@
 package main
 
-import ("../util"
+import (
+	"code_tpl_go/util"
 	"fmt"
 )
 
@@ -15,7 +16,6 @@ func MapCopyExample() {
 	map3 := util.MapCopy(nil)
 	fmt.Println("map3: ", map3)
 }
-
 
 func main() {
 	MapCopyExample()
